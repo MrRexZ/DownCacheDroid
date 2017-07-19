@@ -29,8 +29,8 @@ public class DownImageFile extends BaseDownFile {
 
     OkHttpClient client = new OkHttpClient();
 
-    public DownImageFile(Context ctx, Activity act, CacheDroid cacheDroid) {
-        super(ctx, act, cacheDroid);
+    public DownImageFile(Activity act, CacheDroid cacheDroid) {
+        super(act, cacheDroid);
     }
 
     void download(String url) throws IOException {

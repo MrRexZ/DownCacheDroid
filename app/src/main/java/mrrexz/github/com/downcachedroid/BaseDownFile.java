@@ -18,13 +18,11 @@ import okhttp3.Call;
 
 public abstract class BaseDownFile {
 
-    Context context;
     Activity activity;
     CacheDroid cacheDroid;
     Map<String, Call> urlCalls = new HashMap<>();
 
-    public BaseDownFile(Context ctx, Activity act, CacheDroid cDroid){
-        context = ctx;
+    public BaseDownFile(Activity act, CacheDroid cDroid){
         activity = act;
         cacheDroid = cDroid;
     }
