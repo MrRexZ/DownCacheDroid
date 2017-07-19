@@ -16,6 +16,7 @@ import java.util.regex.Matcher;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -23,9 +24,7 @@ import okhttp3.Response;
 public class MainActivity extends AppCompatActivity {
 
     final String testString = "http://pastebin.com/raw/wgkJgazE";
-    OkHttpClient client = new OkHttpClient();
     Set<BaseDownFile> supportedDownTypes = new HashSet<>();
-    String[] urlLinks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,46 +41,12 @@ public class MainActivity extends AppCompatActivity {
         );
 
         try {
-            Call pageRequest = this.call(testString);
+            Call pageRequest = DownloadProcDroid.getWebResLinks(testString, this);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static String[] extractLinks(String text) {
-        List<String> urlLinks = new ArrayList<String>();
-        Matcher urlMatcher = Patterns.WEB_URL.matcher(text);
-        while (urlMatcher.find()) {
-            String url = urlMatcher.group();
-            urlLinks.add(url);
-        }
-        return urlLinks.toArray(new String[urlLinks.size()]);
-    }
 
-    Call call(String url) throws IOException {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
 
-        Call call = client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(final Call call, IOException e) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                    }
-                });
-            }
-
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-                String res = response.body().string();
-                urlLinks = extractLinks(res);
-                Log.d("RES", res);
-            }
-        });
-
-        return call;
-    }
 }
