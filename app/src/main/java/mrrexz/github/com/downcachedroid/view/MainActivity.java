@@ -2,18 +2,20 @@ package mrrexz.github.com.downcachedroid.view;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.widget.ImageView;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 import mrrexz.github.com.downcachedroid.R;
-import mrrexz.github.com.downcachedroid.controller.caching.CacheDroid;
+import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
 import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
-import mrrexz.github.com.downcachedroid.model.BaseDownFile;
-import mrrexz.github.com.downcachedroid.model.DownImageFile;
+import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFile;
+import mrrexz.github.com.downcachedroid.model.downfiles.DownImageFile;
 import okhttp3.Call;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,19 +32,27 @@ public class MainActivity extends AppCompatActivity {
                 Context.ACTIVITY_SERVICE)).getMemoryClass();
         final int cacheSize = 1024 * 1024 * memClass / 8;
         CacheDroid cacheDroid = new CacheDroid(cacheSize);
-
         supportedDownTypes.add(
-                new DownImageFile(this, cacheDroid)
+                new DownImageFile()
         );
 
         try {
             Call pageRequest = DownloadProcDroid.getWebResLinks(testString, (urls) -> {
-                DownloadProcDroid.process(urls,
+                DownloadProcDroid.process(
+                        urls,
                         supportedDownTypes);
             });
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        ImageView image = (ImageView) findViewById(R.id.imageView1);
+        String test = "https://images.unsplash.com/profile-1464495186405-68089dcd96c3?ixlib=rb-0.3.5";
+        CacheDroid.getTypeFromCache(test);
+        while (CacheDroid.getDataFromCache(test) == null) {
+                image.setImageBitmap((Bitmap) CacheDroid.getConvertedDataFromCache(test));
+        }
+
     }
 
 

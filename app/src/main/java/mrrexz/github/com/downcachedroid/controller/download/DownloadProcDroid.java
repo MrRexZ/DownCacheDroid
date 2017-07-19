@@ -1,15 +1,18 @@
 package mrrexz.github.com.downcachedroid.controller.download;
 
+import android.support.v4.util.Pair;
 import android.util.Patterns;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 
 import mrrexz.github.com.downcachedroid.helper.GenericCallback;
-import mrrexz.github.com.downcachedroid.model.BaseDownFile;
+import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
+import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFile;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -81,7 +84,41 @@ public class DownloadProcDroid {
 
     public static void process(List<String> urls, Set<BaseDownFile> supportedDownTypes) {
         urls.forEach( url -> {
-            
+            supportedDownTypes.forEach(obj -> {
+                try {
+                    InputStream cachedVal = (InputStream) obj.get(url);
+                    if(cachedVal == null) {
+                        obj.download(url);
+                    }
+                    obj.get(url);
+                    //download(url, obj.MIME, cacheDroid);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
         });
     }
+
+//    static void download(String url, String MIME , CacheDroid cacheDroid) throws IOException {
+//        DownloadProcDroid.analyzeMimeType(url, (mediaType) -> {
+//            if (mediaType.type().equals(MIME)){
+//                Request request = new Request.Builder()
+//                        .url(url)
+//                        .build();
+//                Call call = client.newCall(request);
+//                call.enqueue(new Callback() {
+//                    @Override
+//                    public void onFailure(final Call call, IOException e) {
+//                    }
+//                    @Override
+//                    public void onResponse(Call call, final Response response) throws IOException {
+//                        InputStream resStream = response.body().byteStream();
+//                        cacheDroid.insertToCache(url, resStream);
+//                    }
+//                });
+//                urlCalls.put(url, call);
+//            }
+//        });
+//    }
+
 }
