@@ -47,7 +47,6 @@ public class DownloadProcDroid {
             public void onResponse(Call call, final Response response) throws IOException {
                 String res = response.body().string();
                 urlLinks = extractLinks(res);
-                Log.d("RES", res);
             }
         });
 
@@ -69,7 +68,6 @@ public class DownloadProcDroid {
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 MediaType contentType = MediaType.parse(response.header("Content-Type"));
-                Log.d("HOLA", contentType.toString());
             }
         });
 
