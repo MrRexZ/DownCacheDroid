@@ -45,7 +45,7 @@ public class CacheDroid {
             return getTypeFromCache(key).get(key);
         } catch (Exception e) {
         return null;
-    }
+        }
     }
 
 

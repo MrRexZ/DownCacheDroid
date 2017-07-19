@@ -15,7 +15,8 @@ import okhttp3.Call;
 
 public abstract class BaseDownFile {
 
-    Activity activity;
+
+
     Map<String, Call> urlCalls = new HashMap<>();
     public final String MIME;
 
@@ -25,4 +26,21 @@ public abstract class BaseDownFile {
 
     public abstract Object get(String url) ;
     public abstract void download(String url) throws IOException ;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BaseDownFile)) return false;
+
+        BaseDownFile that = (BaseDownFile) o;
+
+        return MIME.equals(that.MIME);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return MIME.hashCode();
+    }
+
 }
