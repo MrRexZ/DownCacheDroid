@@ -1,19 +1,14 @@
-package mrrexz.github.com.downcachedroid;
+package mrrexz.github.com.downcachedroid.model;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.support.constraint.solver.Cache;
-import android.support.v4.util.LruCache;
-import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
+import mrrexz.github.com.downcachedroid.controller.caching.CacheDroid;
+import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
@@ -25,17 +20,21 @@ import okhttp3.Response;
  */
 
 public class DownImageFile extends BaseDownFile {
-
-
     OkHttpClient client = new OkHttpClient();
 
     public DownImageFile(Activity act, CacheDroid cacheDroid) {
-        super(act, cacheDroid);
+        super(act, cacheDroid, "image");
     }
 
     void download(String url) throws IOException {
-        Call call = call(url);
-        urlCalls.put(url, call);
+
+        DownloadProcDroid.analyzeMimeType(url, (mediaType) -> {
+            if (mediaType.type().equals(MIME)){
+                Call call = call(url);
+                urlCalls.put(url, call);
+            }
+        });
+
     }
 
     Call call(final String url) throws IOException {

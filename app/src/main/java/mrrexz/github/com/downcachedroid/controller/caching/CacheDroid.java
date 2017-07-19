@@ -1,8 +1,5 @@
-package mrrexz.github.com.downcachedroid;
+package mrrexz.github.com.downcachedroid.controller.caching;
 
-import android.app.ActivityManager;
-import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 
 import java.io.InputStream;

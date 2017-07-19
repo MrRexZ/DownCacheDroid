@@ -1,25 +1,20 @@
-package mrrexz.github.com.downcachedroid;
+package mrrexz.github.com.downcachedroid.view;
 
 import android.app.ActivityManager;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.util.Patterns;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
 
+import mrrexz.github.com.downcachedroid.R;
+import mrrexz.github.com.downcachedroid.controller.caching.CacheDroid;
+import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
+import mrrexz.github.com.downcachedroid.model.BaseDownFile;
+import mrrexz.github.com.downcachedroid.model.DownImageFile;
 import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,7 +36,10 @@ public class MainActivity extends AppCompatActivity {
         );
 
         try {
-            Call pageRequest = DownloadProcDroid.getWebResLinks(testString, this);
+            Call pageRequest = DownloadProcDroid.getWebResLinks(testString, (urls) -> {
+                DownloadProcDroid.process(urls,
+                        supportedDownTypes);
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
