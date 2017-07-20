@@ -21,7 +21,6 @@ import okhttp3.Response;
  */
 
 public class DownImageFile extends BaseDownFile {
-    OkHttpClient client = new OkHttpClient();
 
     public DownImageFile() {
         super("image");
@@ -35,23 +34,20 @@ public class DownImageFile extends BaseDownFile {
         return bitmap;
     }
 
+    @Override
     public void download(String url) throws IOException {
-        DownloadProcDroid.analyzeMimeType(url, (mediaType) -> {
-            if (mediaType.type().equals(MIME)){
-                Call call = DownloadProcDroid.standardDownload(url, new Callback() {
-                    @Override
-                    public void onFailure(final Call call, IOException e) {
-                    }
-                    @Override
-                    public void onResponse(Call call, final Response response) throws IOException {
-                        InputStream resStream = response.body().byteStream();
-                        Log.d("DownedFiles", url);
-                        CacheDroid.insertToCache(url, resStream, DownImageFile.this);
-                    }
-                });
-                urlCalls.put(url, call);
+        Call call = DownloadProcDroid.standardDownload(url, new Callback() {
+            @Override
+            public void onFailure(final Call call, IOException e) {
+            }
+            @Override
+            public void onResponse(Call call, final Response response) throws IOException {
+                InputStream resStream = response.body().byteStream();
+                Log.d("DownedFiles", url);
+                CacheDroid.insertToCache(url, resStream, DownImageFile.this);
             }
         });
+        urlCalls.put(url, call);
     }
 
 }

@@ -24,7 +24,7 @@ public abstract class BaseDownFile {
         MIME = mime;
     }
 
-    public abstract Object get(String url) ;
+    public abstract Object get(String url) throws NullPointerException ;
     public abstract void download(String url) throws IOException ;
 
     @Override

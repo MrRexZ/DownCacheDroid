@@ -14,11 +14,7 @@ import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFile;
  */
 
 public class CacheDroid {
-    static LruCache<String, Pair<InputStream, BaseDownFile>> lruCache;
-    static ConcurrentHashMap<String, BaseDownFile> downFileTypeMap = new ConcurrentHashMap<>();
-    public CacheDroid(int cacheSize) {
-        lruCache = new LruCache<String, Pair<InputStream, BaseDownFile>>(cacheSize);
-    }
+    static LruCache<String, Pair<InputStream, BaseDownFile>> lruCache = new LruCache<String, Pair<InputStream, BaseDownFile>>(getDefaultLruCacheSize());
 
     public synchronized static void insertToCache(String key, InputStream data, BaseDownFile downFileType){
         lruCache.put(key, new Pair<>(data, downFileType));
@@ -50,6 +46,12 @@ public class CacheDroid {
 
     public synchronized static void resizeCache(int maxSize){
         lruCache.resize(maxSize);
+    }
+
+    public static int getDefaultLruCacheSize() {
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        final int cacheSize = maxMemory / 8;
+        return cacheSize;
     }
 
 

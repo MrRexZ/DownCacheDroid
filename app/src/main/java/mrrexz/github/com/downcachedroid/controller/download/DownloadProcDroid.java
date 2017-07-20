@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import mrrexz.github.com.downcachedroid.helper.GenericCallback;
@@ -15,6 +18,8 @@ import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFile;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.ConnectionPool;
+import okhttp3.Dispatcher;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -26,10 +31,19 @@ import okhttp3.Response;
 
 public class DownloadProcDroid {
 
-    static OkHttpClient client = new OkHttpClient();
+    static OkHttpClient client = createOkHttpClient();
 
+    private static OkHttpClient createOkHttpClient() {
+        Dispatcher dispatcher = new Dispatcher();
+        dispatcher.setMaxRequests(100);
+        dispatcher.setMaxRequestsPerHost(40);
+        return new OkHttpClient.Builder()
+                .dispatcher(dispatcher)
+                .connectionPool(new ConnectionPool(40 ,15000, TimeUnit.MILLISECONDS))
+                .build();
+
+    }
     public static Call getWebResLinks(String url, GenericCallback<List<String>> successCallback) throws IOException {
-
         Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -83,17 +97,21 @@ public class DownloadProcDroid {
     }
 
     public static void process(List<String> urls, Set<BaseDownFile> supportedDownTypes) {
+        Map<String, BaseDownFile> mimeDownObjMap = new ConcurrentHashMap<>();
+        supportedDownTypes.stream().parallel().forEach(supportedType -> {
+            mimeDownObjMap.put(supportedType.MIME, supportedType);
+        });
         urls.forEach( url -> {
-            supportedDownTypes.forEach(obj -> {
-                try {
-                    InputStream cachedVal = (InputStream) obj.get(url);
-                    if(cachedVal == null) {
-                        obj.download(url);
+            DownloadProcDroid.analyzeMimeType(url, new GenericCallback<MediaType>() {
+                @Override
+                public void onValue(MediaType mediaType) throws IOException {
+                    BaseDownFile downObjType = mimeDownObjMap.get(mediaType.type());
+                    if (downObjType != null) {
+                        InputStream cachedVal = CacheDroid.getDataFromCache(url);
+                        if (cachedVal == null) {
+                            downObjType.download(url);
+                        }
                     }
-                    obj.get(url);
-                    //download(url, obj.MIME, cacheDroid);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             });
         });

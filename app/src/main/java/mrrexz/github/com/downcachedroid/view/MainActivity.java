@@ -6,8 +6,10 @@ import android.graphics.Bitmap;
 import android.support.constraint.solver.Cache;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.ListViewCompat;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.ListView;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -33,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         final int memClass = ((ActivityManager) this.getApplicationContext().getSystemService(
                 Context.ACTIVITY_SERVICE)).getMemoryClass();
         final int cacheSize = 1024 * 1024 * memClass / 8;
-        CacheDroid.resizeCache(cacheSize);
+        System.out.println("CacheSize: "+cacheSize);
         supportedDownTypes.add(
                 new DownImageFile()
         );
@@ -50,10 +52,10 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView image = (ImageView) findViewById(R.id.imageView1);
         String test = "https://images.unsplash.com/profile-1464495186405-68089dcd96c3?ixlib=rb-0.3.5";
-        CacheDroid.getTypeFromCache(test);
-        while (CacheDroid.getDataFromCache(test) == null) {
-                image.setImageBitmap((Bitmap) CacheDroid.getConvertedDataFromCache(test));
-        }
+        ListView listViewPhotos = (ListView) findViewById(R.id.list_photos);
+//        while (CacheDroid.getDataFromCache(test) == null) {
+//        }
+//        image.setImageBitmap((Bitmap) CacheDroid.getConvertedDataFromCache(test));
 
     }
 
