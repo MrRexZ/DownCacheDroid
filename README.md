@@ -1,7 +1,6 @@
 # DownCacheDroid
 A library to effectively cache & download web files.
 
-
 # 1.Requirements
 
 ```
@@ -9,16 +8,17 @@ A library to effectively cache & download web files.
 ```
 
 # 2. Features & Usage
-## 2.1 Caching
+## 2.1 Downloading & Caching
 Caching is created using LRU (Least-Recently-Used) algorithm.
 To cache, first determine what types of file you'd like to download by calling
 `CacheDroid.supportedDownTypes` method. For example , to download all images file given
 a textual representation of web data, call :
-` CacheDroid.supportedDownTypes.add(new DownImageFile());`.
+` CacheDroid.supportedDownTypes.add(new ImageDownFile());`.
 Custom types are supported by extending from
 `DownCacheDroid\app\src\main\java\mrrexz\github\com\downcachedroid\model\downfiles\BaseDownFile`.
 After determining the supported data type, provides a URL string containing textual representation
-of web data and execute the `DownloadProcDroid.cacheWebContents(String url)` method.
+of web data and execute the `DownloadProcDroid.cacheWebContents(String url)` method to download and perform caching at the same time.
+Users can call `resizeCache` method to resize the cache.
 
 
 ## 2.2 Getting Information From Cache
@@ -47,13 +47,13 @@ Users can create his/her own class type that extends from `BaseDownFile`, and ca
 any functions against them polymorphically.
 
 ## 2.3 Creating Custom Downloadable Types
-Users of library can create their own class and extend from `BaseDownFile` class.
+Users of library can create their own class to support new downloadable types, by extending their class from `BaseDownFile` class.
 Users will be required to specify the MIME, which represents what type of Content-Type the class should represent as.
 and also to override 2 methods; `get` and `download`.
 `get` method allows the users to perform casting to his/her desired type from data stored in
 the format of `InputStream` in cache.
-`download` method allows the users to put his/her own custom download algorithm for the element of the `Content-Type` that mathces with
-the current object's MIME value.
+`download` method allows the users to implement his/her own custom download algorithm for data with MIME type
+that the class represents.
 
 
 # 3.TODOs:

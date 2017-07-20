@@ -1,13 +1,18 @@
 package mrrexz.github.com.downcachedroid.model.downfiles;
 
 import android.app.Activity;
+import android.util.Log;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
 import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * Created by antho on 7/19/2017.
@@ -25,7 +30,7 @@ public abstract class BaseDownFile {
     }
 
     public abstract Object get(String url) throws NullPointerException ;
-    public abstract void download(String url) throws IOException ;
+    public abstract void download(String url) throws IOException;
 
     @Override
     public boolean equals(Object o) {

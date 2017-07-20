@@ -1,6 +1,5 @@
 package mrrexz.github.com.downcachedroid.model.downfiles;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
@@ -12,17 +11,15 @@ import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
 import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Response;
 
 /**
  * Created by antho on 7/19/2017.
  */
 
-public class DownImageFile extends BaseDownFile {
+public class ImageDownFile extends BaseDownFile {
 
-    public DownImageFile() {
+    public ImageDownFile() {
         super("image");
     }
 
@@ -43,8 +40,8 @@ public class DownImageFile extends BaseDownFile {
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 InputStream resStream = response.body().byteStream();
-                Log.d("DownedFiles", url);
-                CacheDroid.insertToCache(url, resStream, DownImageFile.this);
+                Log.d("Downloaded File :", url);
+                CacheDroid.insertToCache(url, resStream, ImageDownFile.this);
             }
         });
         urlCalls.put(url, call);

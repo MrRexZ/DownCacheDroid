@@ -93,7 +93,6 @@ public class DownloadProcDroid {
             public void onFailure(final Call call, IOException e) {
 
             }
-
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 MediaType contentType = MediaType.parse(response.header("Content-Type"));
