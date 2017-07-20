@@ -1,5 +1,6 @@
 package mrrexz.github.com.downcachedroid.controller.download;
 
+import android.provider.ContactsContract;
 import android.support.v4.util.Pair;
 import android.util.Patterns;
 
@@ -9,7 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -32,17 +38,28 @@ import okhttp3.Response;
 public class DownloadProcDroid {
 
     static OkHttpClient client = createOkHttpClient();
-
     private static OkHttpClient createOkHttpClient() {
+
         Dispatcher dispatcher = new Dispatcher();
-        dispatcher.setMaxRequests(100);
-        dispatcher.setMaxRequestsPerHost(40);
+        dispatcher.setMaxRequests(70);
+        dispatcher.setMaxRequestsPerHost(20);
         return new OkHttpClient.Builder()
                 .dispatcher(dispatcher)
-                .connectionPool(new ConnectionPool(40 ,15000, TimeUnit.MILLISECONDS))
+                .connectionPool(new ConnectionPool(20 ,15000, TimeUnit.MILLISECONDS))
                 .build();
-
     }
+
+    public static Call cacheWebContents(String url) {
+        try {
+            Call cacheWebContentsCall = DownloadProcDroid.getWebResLinks(url, DownloadProcDroid::cache);
+            return cacheWebContentsCall;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public static Call getWebResLinks(String url, GenericCallback<List<String>> successCallback) throws IOException {
         Request request = new Request.Builder()
                 .url(url)
@@ -86,6 +103,31 @@ public class DownloadProcDroid {
         return call;
     }
 
+    public static String[] retrieveUrlsWithMimeType(String targetMIME, String[] urls) throws ExecutionException, InterruptedException {
+
+        ExecutorService executor = Executors.newCachedThreadPool();
+        Callable<String[]> callable = new Callable<String[]>() {
+            @Override
+            public String[] call() throws Exception {
+                List<String> filteredURL = new ArrayList<>();
+                for (int i = 0 ; i< urls.length ; i++) {
+                    Request request = new Request.Builder()
+                            .url(urls[i])
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    MediaType contentType = MediaType.parse(response.header("Content-Type"));
+                    if (contentType.type().equals(targetMIME))
+                        filteredURL.add(urls[i]);
+
+                }
+
+                return filteredURL.toArray(new String[filteredURL.size()]);
+            }
+        };
+        Future<String[]> future =  executor.submit(callable);
+        return future.get();
+    }
+
     private static List<String> extractLinks(String text) {
         List<String> urlLinks = new ArrayList<String>();
         Matcher urlMatcher = Patterns.WEB_URL.matcher(text);
@@ -96,9 +138,9 @@ public class DownloadProcDroid {
         return urlLinks;
     }
 
-    public static void process(List<String> urls, Set<BaseDownFile> supportedDownTypes) {
+    public static void cache(List<String> urls) {
         Map<String, BaseDownFile> mimeDownObjMap = new ConcurrentHashMap<>();
-        supportedDownTypes.stream().parallel().forEach(supportedType -> {
+        CacheDroid.supportedDownTypes.stream().parallel().forEach(supportedType -> {
             mimeDownObjMap.put(supportedType.MIME, supportedType);
         });
         urls.forEach( url -> {

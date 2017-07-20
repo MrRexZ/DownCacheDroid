@@ -5,6 +5,8 @@ import android.support.v4.util.Pair;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFile;
@@ -15,7 +17,7 @@ import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFile;
 
 public class CacheDroid {
     static LruCache<String, Pair<InputStream, BaseDownFile>> lruCache = new LruCache<String, Pair<InputStream, BaseDownFile>>(getDefaultLruCacheSize());
-
+    public static Set<BaseDownFile> supportedDownTypes = new HashSet<>();
     public synchronized static void insertToCache(String key, InputStream data, BaseDownFile downFileType){
         lruCache.put(key, new Pair<>(data, downFileType));
     }
