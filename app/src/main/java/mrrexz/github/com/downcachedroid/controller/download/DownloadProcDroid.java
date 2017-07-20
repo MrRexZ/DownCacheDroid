@@ -99,26 +99,13 @@ public class DownloadProcDroid {
         });
     }
 
-//    static void download(String url, String MIME , CacheDroid cacheDroid) throws IOException {
-//        DownloadProcDroid.analyzeMimeType(url, (mediaType) -> {
-//            if (mediaType.type().equals(MIME)){
-//                Request request = new Request.Builder()
-//                        .url(url)
-//                        .build();
-//                Call call = client.newCall(request);
-//                call.enqueue(new Callback() {
-//                    @Override
-//                    public void onFailure(final Call call, IOException e) {
-//                    }
-//                    @Override
-//                    public void onResponse(Call call, final Response response) throws IOException {
-//                        InputStream resStream = response.body().byteStream();
-//                        cacheDroid.insertToCache(url, resStream);
-//                    }
-//                });
-//                urlCalls.put(url, call);
-//            }
-//        });
-//    }
+    public static Call standardDownload(String url, Callback callback)  {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        Call call = client.newCall(request);
+        call.enqueue(callback);
 
+        return call;
+    }
 }

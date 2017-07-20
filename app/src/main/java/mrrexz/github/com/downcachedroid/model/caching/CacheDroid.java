@@ -44,8 +44,12 @@ public class CacheDroid {
         try {
             return getTypeFromCache(key).get(key);
         } catch (Exception e) {
-        return null;
+            return null;
         }
+    }
+
+    public synchronized static void resizeCache(int maxSize){
+        lruCache.resize(maxSize);
     }
 
 

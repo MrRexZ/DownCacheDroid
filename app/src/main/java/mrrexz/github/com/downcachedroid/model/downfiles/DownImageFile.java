@@ -38,30 +38,20 @@ public class DownImageFile extends BaseDownFile {
     public void download(String url) throws IOException {
         DownloadProcDroid.analyzeMimeType(url, (mediaType) -> {
             if (mediaType.type().equals(MIME)){
-                Call call = downloadProc(url);
+                Call call = DownloadProcDroid.standardDownload(url, new Callback() {
+                    @Override
+                    public void onFailure(final Call call, IOException e) {
+                    }
+                    @Override
+                    public void onResponse(Call call, final Response response) throws IOException {
+                        InputStream resStream = response.body().byteStream();
+                        Log.d("DownedFiles", url);
+                        CacheDroid.insertToCache(url, resStream, DownImageFile.this);
+                    }
+                });
                 urlCalls.put(url, call);
             }
         });
-    }
-
-    Call downloadProc(String url) {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-        Call call = client.newCall(request);
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(final Call call, IOException e) {
-            }
-            @Override
-            public void onResponse(Call call, final Response response) throws IOException {
-                InputStream resStream = response.body().byteStream();
-                Log.d("DownedFiles", url);
-                CacheDroid.insertToCache(url, resStream, DownImageFile.this);
-            }
-        });
-
-        return call;
     }
 
 }

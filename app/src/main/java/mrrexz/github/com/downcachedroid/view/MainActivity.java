@@ -3,6 +3,7 @@ package mrrexz.github.com.downcachedroid.view;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.support.constraint.solver.Cache;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         final int memClass = ((ActivityManager) this.getApplicationContext().getSystemService(
                 Context.ACTIVITY_SERVICE)).getMemoryClass();
         final int cacheSize = 1024 * 1024 * memClass / 8;
-        CacheDroid cacheDroid = new CacheDroid(cacheSize);
+        CacheDroid.resizeCache(cacheSize);
         supportedDownTypes.add(
                 new DownImageFile()
         );
