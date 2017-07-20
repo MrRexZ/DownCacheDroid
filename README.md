@@ -25,20 +25,20 @@ of web data and execute the `DownloadProcDroid.cacheWebContents(String url)` met
 The cache is stored in the format of key (URL) & value (Pair of cached web data and object representing types of data)
 There are 3 main methods provided for user, all of which are accessed from `DownCacheDroid\app\src\main\java\mrrexz\github\com\downcachedroid\model\caching\CacheDroid` class :
 
-1.Get Uncompressed Data :
+**1.Get Uncompressed Data :**
 ```
 public synchronized static Object getConvertedDataFromCache(String key)
 ```
 The method returns object fully & safely castable to type as specified in the
 `get` method of the class that extends from `BaseDownFile`.
 
-2.Get Content of Web Data :
+**2.Get Content of Web Data :**
 ```
 public synchronized static InputStream getDataFromCache(String key)
 ```
 Returns an InputStream which the user can perform casting to the desired data.
 
-3.Get Object Type Of Web Data :
+**3.Get Object Type Of Web Data :**
 ```
 public synchronized static BaseDownFile getTypeFromCache(String key)
 ```
@@ -57,7 +57,10 @@ the current object's MIME value.
 
 
 # 3.TODOs:
-## 3.1 Implement test units
-## 3.2 Implement Demo
+```
+3.1 Implement test units
+3.2 Implement Demo
+3.3 Utilizes NDK
+```
 
 
