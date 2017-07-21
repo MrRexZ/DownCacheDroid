@@ -39,9 +39,8 @@ public class BitmapHelper {
         return inSampleSize;
     }
 
-    public static Bitmap decodeSampledBitmapFromStream(String key_url, Rect outPadding,
-                                                       int reqWidth, int reqHeight) {
-
+    public static Bitmap decodeSampledBitmapFromBytes(String key_url, Rect outPadding,
+                                                      int reqWidth, int reqHeight) {
 
         byte[] bytesImage = CacheDroid.getDataFromCache(key_url);
         // First decode with inJustDecodeBounds=true to check dimensions

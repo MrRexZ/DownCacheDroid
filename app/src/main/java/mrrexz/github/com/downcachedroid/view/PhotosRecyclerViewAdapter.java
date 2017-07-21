@@ -15,8 +15,6 @@ import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
  */
 
 
-import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
@@ -51,7 +49,7 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
         String key_url = itemsData.get(position);
         byte[] imageStream = CacheDroid.getDataFromCache(key_url);
         if ( imageStream != null ) {
-            viewHolder.imgViewIcon.setImageBitmap(BitmapHelper.decodeSampledBitmapFromStream(key_url, new Rect(100, 100, 100, 100), 350, 350));
+            viewHolder.imgViewIcon.setImageBitmap(BitmapHelper.decodeSampledBitmapFromBytes(key_url, new Rect(100, 100, 100, 100), 350, 350));
         }
         else {
             BitmapWorkerTask bitmapWorkerTask = new BitmapWorkerTask(viewHolder.imgViewIcon);

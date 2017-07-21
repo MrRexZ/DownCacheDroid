@@ -1,7 +1,6 @@
 package mrrexz.github.com.downcachedroid.model.downfiles;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.util.Log;
 
@@ -31,7 +30,7 @@ public class ImageDownFile extends BaseDownFile {
     public Object get(String url) {
         byte[] inStream = CacheDroid.getDataFromCache(url);
         if (inStream == null) return null;
-        Bitmap bitmap = BitmapHelper.decodeSampledBitmapFromStream(url, new Rect(10,10,10,10), 100, 100);
+        Bitmap bitmap = BitmapHelper.decodeSampledBitmapFromBytes(url, new Rect(10,10,10,10), 100, 100);
         return bitmap;
     }
 
@@ -43,10 +42,11 @@ public class ImageDownFile extends BaseDownFile {
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
-                InputStream is = response.body().byteStream();
-                byte[] bytesData = IOUtils.toByteArray(is);
-                Log.d("Downloaded File :", url);
-                CacheDroid.insertToCache(url, bytesData, ImageDownFile.this);
+                try (InputStream is = response.body().byteStream()) {
+                    byte[] bytesData = IOUtils.toByteArray(is);
+                    Log.d("Downloaded File :", url);
+                    CacheDroid.insertToCache(url, bytesData, ImageDownFile.this);
+                }
             }
         });
         urlCalls.put(url, call);

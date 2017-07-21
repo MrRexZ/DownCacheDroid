@@ -5,22 +5,17 @@ package mrrexz.github.com.downcachedroid.view;
  */
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
-import android.support.constraint.solver.Cache;
 import android.util.Log;
 import android.widget.ImageView;
 
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 
-import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import mrrexz.github.com.downcachedroid.helper.AsyncDrawable;
 import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
-import static mrrexz.github.com.downcachedroid.model.caching.CacheDroid.getDataFromCache;
 
 public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     public static final String TAG = BitmapWorkerTask.class.getName();
@@ -63,7 +58,7 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     public static Bitmap decodeBitmapFromCache(String key_url) {
         while (CacheDroid.getDataFromCache(key_url) == null){}
         Log.d("BITMAP WorkerTask", "Decoding...");
-        return BitmapHelper.decodeSampledBitmapFromStream(key_url, new Rect(10,10,10,10), 150, 150);
+        return BitmapHelper.decodeSampledBitmapFromBytes(key_url, new Rect(10,10,10,10), 150, 150);
     }
 
     public static void cancelWork(ImageView imageView) {
