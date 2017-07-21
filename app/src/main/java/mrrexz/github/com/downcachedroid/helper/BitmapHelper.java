@@ -39,24 +39,22 @@ public class BitmapHelper {
         return inSampleSize;
     }
 
-    public static Bitmap decodeSampledBitmapFromStream(InputStream inStream, Rect outPadding,
+    public static Bitmap decodeSampledBitmapFromStream(String key_url, Rect outPadding,
                                                        int reqWidth, int reqHeight) {
 
+
+        byte[] bytesImage = CacheDroid.getDataFromCache(key_url);
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(inStream, outPadding, options);
+        BitmapFactory.decodeByteArray(bytesImage, 0, bytesImage.length, options);
 
         // Calculate inSampleSize
         options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
 
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
-        try {
-            inStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return BitmapFactory.decodeStream(inStream, outPadding, options);
+        Log.d("BITMAP Helper", "New Stream input stream");
+        return BitmapFactory.decodeByteArray(bytesImage, 0, bytesImage.length, options);
     }
 }

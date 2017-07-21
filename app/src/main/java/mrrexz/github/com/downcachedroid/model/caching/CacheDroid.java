@@ -3,6 +3,8 @@ package mrrexz.github.com.downcachedroid.model.caching;
 import android.support.v4.util.LruCache;
 import android.support.v4.util.Pair;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -16,13 +18,13 @@ import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFile;
  */
 
 public class CacheDroid {
-    static LruCache<String, Pair<InputStream, BaseDownFile>> lruCache = new LruCache<String, Pair<InputStream, BaseDownFile>>(getDefaultLruCacheSize());
+    static LruCache<String, Pair<byte[], BaseDownFile>> lruCache = new LruCache<String, Pair<byte[], BaseDownFile>>(getDefaultLruCacheSize());
     public static Set<BaseDownFile> supportedDownTypes = new HashSet<>();
-    public synchronized static void insertToCache(String key, InputStream data, BaseDownFile downFileType){
-        lruCache.put(key, new Pair<>(data, downFileType));
+    public synchronized static void insertToCache(String key, byte[] is, BaseDownFile downFileType){
+        lruCache.put(key, new Pair<>(is, downFileType));
     }
 
-    public synchronized static InputStream getDataFromCache(String key)  {
+    public synchronized static byte[] getDataFromCache(String key)  {
         try {
             return lruCache.get(key).first;
         } catch (Exception e) {

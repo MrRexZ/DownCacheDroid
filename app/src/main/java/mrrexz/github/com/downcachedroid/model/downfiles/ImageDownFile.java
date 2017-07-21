@@ -2,11 +2,15 @@ package mrrexz.github.com.downcachedroid.model.downfiles;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.util.Log;
+
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
 import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import okhttp3.Call;
@@ -25,9 +29,9 @@ public class ImageDownFile extends BaseDownFile {
 
     @Override
     public Object get(String url) {
-        InputStream inStream = CacheDroid.getDataFromCache(url);
+        byte[] inStream = CacheDroid.getDataFromCache(url);
         if (inStream == null) return null;
-        Bitmap bitmap = BitmapFactory.decodeStream(inStream);
+        Bitmap bitmap = BitmapHelper.decodeSampledBitmapFromStream(url, new Rect(10,10,10,10), 100, 100);
         return bitmap;
     }
 
@@ -39,9 +43,10 @@ public class ImageDownFile extends BaseDownFile {
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
-                InputStream resStream = response.body().byteStream();
+                InputStream is = response.body().byteStream();
+                byte[] bytesData = IOUtils.toByteArray(is);
                 Log.d("Downloaded File :", url);
-                CacheDroid.insertToCache(url, resStream, ImageDownFile.this);
+                CacheDroid.insertToCache(url, bytesData, ImageDownFile.this);
             }
         });
         urlCalls.put(url, call);

@@ -62,9 +62,8 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
 
     public static Bitmap decodeBitmapFromCache(String key_url) {
         while (CacheDroid.getDataFromCache(key_url) == null){}
-        InputStream imStream = CacheDroid.getDataFromCache(key_url);
         Log.d("BITMAP WorkerTask", "Decoding...");
-        return BitmapHelper.decodeSampledBitmapFromStream(imStream, new Rect(10,10,10,10), 150, 150);
+        return BitmapHelper.decodeSampledBitmapFromStream(key_url, new Rect(10,10,10,10), 150, 150);
     }
 
     public static void cancelWork(ImageView imageView) {

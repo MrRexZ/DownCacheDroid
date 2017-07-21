@@ -1,7 +1,5 @@
 package mrrexz.github.com.downcachedroid.controller.download;
 
-import android.provider.ContactsContract;
-import android.support.v4.util.Pair;
 import android.util.Patterns;
 
 import java.io.IOException;
@@ -9,13 +7,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -38,6 +36,7 @@ import okhttp3.Response;
 public class DownloadProcDroid {
 
     static OkHttpClient client = createOkHttpClient();
+    static OkHttpClient downClient = createOkHttpClient();
     private static OkHttpClient createOkHttpClient() {
 
         Dispatcher dispatcher = new Dispatcher();
@@ -82,7 +81,7 @@ public class DownloadProcDroid {
         return call;
     }
 
-    public static Call analyzeMimeType(final String url, GenericCallback<MediaType> successCallback) {
+    public static Call asyncGetUrlMimeType(final String url, GenericCallback<MediaType> successCallback) {
         Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -102,12 +101,49 @@ public class DownloadProcDroid {
         return call;
     }
 
-    public static String[] retrieveUrlsWithMimeType(String targetMIME, String[] urls) throws ExecutionException, InterruptedException {
+    public static void asyncGetUrlsWithMimeType(String targetMime, String[] urls, GenericCallback<String> successCallback){
+        for (int i = 0 ; i< urls.length ; i++) {
+            asyncGetUrlWithMimeType(targetMime, urls[i], successCallback);
+        }
+    }
+
+    public static void asyncGetUrlWithMimeType(String targetMime, String url, GenericCallback<String> successCallback) {
+        asyncGetUrlMimeType(url, new GenericCallback<MediaType>() {
+            @Override
+            public void onValue(MediaType value) throws IOException {
+                if (value.type().equals(targetMime)){
+                    successCallback.onValue(url);
+                }
+            }
+        });
+    }
+
+    public static MediaType syncIdentifyMime(String url) throws ExecutionException, InterruptedException {
+        Callable<MediaType> callable = new Callable<MediaType>() {
+            @Override
+            public MediaType call() throws Exception {
+                String filteredURL;
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    MediaType contentType = MediaType.parse(response.header("Content-Type"));
+                    return contentType;
+                }
+
+        };
+
+        FutureTask<MediaType> futureTask = new FutureTask<MediaType>(callable);
+        Thread thread = new Thread(futureTask);
+        return futureTask.get();
+    }
+
+    public static List<String> retrieveUrlsWithMimeType(String targetMIME, String[] urls) throws ExecutionException, InterruptedException {
 
         ExecutorService executor = Executors.newCachedThreadPool();
-        Callable<String[]> callable = new Callable<String[]>() {
+        Callable<List<String>> callable = new Callable<List<String>>() {
             @Override
-            public String[] call() throws Exception {
+            public List<String> call() throws Exception {
                 List<String> filteredURL = new ArrayList<>();
                 for (int i = 0 ; i< urls.length ; i++) {
                     Request request = new Request.Builder()
@@ -120,10 +156,10 @@ public class DownloadProcDroid {
 
                 }
 
-                return filteredURL.toArray(new String[filteredURL.size()]);
+                return filteredURL;
             }
         };
-        Future<String[]> future =  executor.submit(callable);
+        Future<List<String>> future =  executor.submit(callable);
         return future.get();
     }
 
@@ -139,16 +175,17 @@ public class DownloadProcDroid {
 
     public static void cache(List<String> urls) {
         Map<String, BaseDownFile> mimeDownObjMap = new ConcurrentHashMap<>();
-        CacheDroid.supportedDownTypes.stream().parallel().forEach(supportedType -> {
+        CacheDroid.supportedDownTypes.stream().forEach(supportedType -> {
             mimeDownObjMap.put(supportedType.MIME, supportedType);
         });
+
         urls.forEach( url -> {
-            DownloadProcDroid.analyzeMimeType(url, new GenericCallback<MediaType>() {
+            DownloadProcDroid.asyncGetUrlMimeType(url, new GenericCallback<MediaType>() {
                 @Override
                 public void onValue(MediaType mediaType) throws IOException {
                     BaseDownFile downObjType = mimeDownObjMap.get(mediaType.type());
                     if (downObjType != null) {
-                        InputStream cachedVal = CacheDroid.getDataFromCache(url);
+                        byte[] cachedVal = CacheDroid.getDataFromCache(url);
                         if (cachedVal == null) {
                             downObjType.download(url);
                         }
@@ -162,7 +199,7 @@ public class DownloadProcDroid {
         Request request = new Request.Builder()
                 .url(url)
                 .build();
-        Call call = client.newCall(request);
+        Call call = downClient.newCall(request);
         call.enqueue(callback);
 
         return call;
