@@ -1,6 +1,7 @@
 package mrrexz.github.com.downcachedroid.view;
 
 import android.graphics.Rect;
+import android.support.constraint.solver.Cache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,7 +9,7 @@ import android.widget.ImageView;
 import android.support.v7.widget.RecyclerView;
 import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
-import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
+import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
 /**
  * Created by antho on 7/20/2017.
@@ -19,9 +20,10 @@ import java.util.List;
 
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
     private List<String> itemsData;
-
-    public PhotosRecyclerViewAdapter(List<String> itemsData) {
+    private CacheDroidModule cacheDroidModule;
+    public PhotosRecyclerViewAdapter(List<String> itemsData, CacheDroidModule cacheDroidModule) {
         this.itemsData = itemsData;
+        this.cacheDroidModule = cacheDroidModule;
     }
 
     public synchronized void add(int position, String item) {
@@ -47,12 +49,12 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         String key_url = itemsData.get(position);
-        byte[] imageStream = CacheDroid.getDataFromCache(key_url);
+        byte[] imageStream = cacheDroidModule.getDataFromCache(key_url);
         if ( imageStream != null ) {
-            viewHolder.imgViewIcon.setImageBitmap(BitmapHelper.decodeSampledBitmapFromBytes(key_url, new Rect(100, 100, 100, 100), 350, 350));
+            viewHolder.imgViewIcon.setImageBitmap(BitmapHelper.decodeSampledBitmapFromBytes(imageStream, new Rect(100, 100, 100, 100), 350, 350));
         }
         else {
-            BitmapWorkerTask bitmapWorkerTask = new BitmapWorkerTask(viewHolder.imgViewIcon);
+            BitmapWorkerTask bitmapWorkerTask = new BitmapWorkerTask(viewHolder.imgViewIcon, cacheDroidModule);
             bitmapWorkerTask.execute(key_url);
         }
 

@@ -15,7 +15,7 @@ import java.lang.ref.WeakReference;
 
 import mrrexz.github.com.downcachedroid.helper.AsyncDrawable;
 import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
-import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
+import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
 public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     public static final String TAG = BitmapWorkerTask.class.getName();
@@ -23,17 +23,18 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     private String key_url;
 
     private final WeakReference<ImageView> imageViewReference;
-
-    public BitmapWorkerTask(ImageView imageView) {
+    private CacheDroidModule cacheDroidModule;
+    public BitmapWorkerTask(ImageView imageView, CacheDroidModule cacheDroidModule) {
         // Use a WeakReference to ensure the ImageView can be garbage collected
         imageViewReference = new WeakReference<>(imageView);
+        this.cacheDroidModule = cacheDroidModule;
     }
 
     // Decode image in background.
     @Override
     protected Bitmap doInBackground(String... params) {
         key_url = params[0];
-        while (CacheDroid.getDataFromCache(key_url) == null) {}
+        while (cacheDroidModule.getDataFromCache(key_url) == null) {}
         return decodeBitmapFromCache(key_url);
     }
 
@@ -55,10 +56,10 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
         }
     }
 
-    public static Bitmap decodeBitmapFromCache(String key_url) {
-        while (CacheDroid.getDataFromCache(key_url) == null){}
+    public Bitmap decodeBitmapFromCache(String key_url) {
+        while (cacheDroidModule.getDataFromCache(key_url) == null){}
         Log.d("BITMAP WorkerTask", "Decoding...");
-        return BitmapHelper.decodeSampledBitmapFromBytes(key_url, new Rect(10,10,10,10), 150, 150);
+        return BitmapHelper.decodeSampledBitmapFromBytes(cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 150, 150);
     }
 
     public static void cancelWork(ImageView imageView) {

@@ -5,10 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.util.Log;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import mrrexz.github.com.downcachedroid.model.caching.CacheDroid;
+import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
 /**
  * Created by antho on 7/20/2017.
@@ -39,10 +36,9 @@ public class BitmapHelper {
         return inSampleSize;
     }
 
-    public static Bitmap decodeSampledBitmapFromBytes(String key_url, Rect outPadding,
+    public static Bitmap decodeSampledBitmapFromBytes(byte[] bytesImage, Rect outPadding,
                                                       int reqWidth, int reqHeight) {
 
-        byte[] bytesImage = CacheDroid.getDataFromCache(key_url);
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
