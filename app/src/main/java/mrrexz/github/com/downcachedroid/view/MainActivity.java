@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
         Set<BaseDownFileModule> setSample = new HashSet<BaseDownFileModule>();
         setSample.add(new ImageDownFileModule());
         DownCacheApp downCacheApp = DaggerDownCacheApp.builder().cacheDroidModule(new CacheDroidModule(setSample)).build();
+        downCacheApp.injectCache(setSample);
         //DownloadProcDroid.cacheWebContents(testString);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recylerview_photos);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
@@ -55,21 +56,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("BITMAP Main", "Preparing...");
         try {
             downCacheApp.getDownloadProcInstance().getWebResLinks(testString, (urls) -> {
-               //List<String> filteredUrls = DownloadProcDroid.retrieveUrlsWithMimeType(new ImageDownFileModule().MIME, urls.toArray(new String[urls.size()]));
-
                 downCacheApp.getDownloadProcInstance().cache(urls);
-//                downCacheApp.getDownloadProcInstance().asyncGetUrlsWithMimeType(new ImageDownFileModule().MIME, urls.toArray(new String[urls.size()]), new GenericCallback<String>() {
-//                    @Override
-//                    public void onValue(String url) throws IOException {
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                photosRecyclerViewAdapter.add(photosRecyclerViewAdapter.getItemCount(), url);
-//                                Log.d("BITMAP", "Successfully added to recylcerview");
-//                            }
-//                        });
-//                    }
-//                });
                 Log.d("BITMAP Main", "Started!!");
 
 

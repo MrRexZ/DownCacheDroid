@@ -141,7 +141,6 @@ public class DownloadProcDroid {
         Callable<MediaType> callable = new Callable<MediaType>() {
             @Override
             public MediaType call() throws Exception {
-                String filteredURL;
                     Request request = new Request.Builder()
                             .url(url)
                             .build();

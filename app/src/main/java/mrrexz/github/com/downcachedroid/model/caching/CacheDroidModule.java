@@ -35,9 +35,14 @@ public class CacheDroidModule {
 
     @Provides
     CacheDroidModule provideCacheDroidModuleInstance() {
-        Set<BaseDownFileModule> tempSet =new HashSet<>();
-        tempSet.add(new ImageDownFileModule());
-        return new CacheDroidModule(tempSet);
+        return this;
+//        Set<BaseDownFileModule> tempSet =new HashSet<>();
+//        return new CacheDroidModule(tempSet);
+
+    }
+
+    public void addNewSupportedType(BaseDownFileModule baseDownFileModule) {
+        supportedDownTypes.add(baseDownFileModule);
     }
 
     public void setDataUpdateListener(DataUpdateListener dataUpdateListener) {
