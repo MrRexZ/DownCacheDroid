@@ -5,5 +5,6 @@ package mrrexz.github.com.downcachedroid.helper;
  */
 
 public interface DataUpdateListener {
-    public void cacheUpdated(String url);
+    void cacheElemAdded(String url);
+    void cacheElemRemoved(String url);
 }

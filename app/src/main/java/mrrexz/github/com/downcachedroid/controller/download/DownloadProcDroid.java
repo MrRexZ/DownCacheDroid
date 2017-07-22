@@ -49,7 +49,6 @@ public class DownloadProcDroid {
 
     private String TAG = "DownloadProcDroid";
     static OkHttpClient client = createOkHttpClient();
-    static OkHttpClient downClient = createOkHttpClient();
     private static OkHttpClient createOkHttpClient() {
         Dispatcher dispatcher = new Dispatcher();
         dispatcher.setMaxRequests(70);
@@ -220,7 +219,7 @@ public class DownloadProcDroid {
             Request request = new Request.Builder()
                     .url(url)
                     .build();
-            Call call = downClient.newCall(request);
+            Call call = client.newCall(request);
             call.enqueue(normalSuccessCallback(url, fileType));
             return call;
         };
@@ -231,7 +230,7 @@ public class DownloadProcDroid {
             @Override
             public void onFailure(final Call call, IOException e) {
                 Log.d(TAG, "On Failure : Redownloading..."  + e.getMessage());
-                call.clone().enqueue(normalSuccessCallback(url, fileType));
+                //call.clone().enqueue(normalSuccessCallback(url, fileType));
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
@@ -241,9 +240,9 @@ public class DownloadProcDroid {
                     cacheDroidModule.insertToCache(url, bytesData, fileType);
                     //afterCache.onValue(url);
                 }
-                catch (IOException e) {
-                    Log.d(TAG, " IOException : Redownloading...");
-                    call.clone().enqueue(normalSuccessCallback(url, fileType));
+                catch (Exception e) {
+                    Log.d(TAG, " Exception : " + e.getMessage());
+                    //call.clone().enqueue(normalSuccessCallback(url, fileType));
                 }
 
             }

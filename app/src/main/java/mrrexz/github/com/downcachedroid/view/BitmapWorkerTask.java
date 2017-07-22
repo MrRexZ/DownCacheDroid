@@ -34,6 +34,8 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     @Override
     protected Bitmap doInBackground(String... params) {
         key_url = params[0];
+        //TODO : Don't wait infinitely. Make an async request the resource if null. Then in the async, check to ensure the cache is not null, and proceed to download if download is not in progress.
+
         while (cacheDroidModule.getDataFromCache(key_url) == null) {}
         return decodeBitmapFromCache(key_url);
     }
@@ -59,7 +61,7 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
     public Bitmap decodeBitmapFromCache(String key_url) {
         while (cacheDroidModule.getDataFromCache(key_url) == null){}
         Log.d("BITMAP WorkerTask", "Decoding...");
-        return BitmapHelper.decodeSampledBitmapFromBytes(cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 150, 150);
+        return BitmapHelper.decodeSampledBitmapFromBytes(cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 250, 250);
     }
 
     public static void cancelWork(ImageView imageView) {

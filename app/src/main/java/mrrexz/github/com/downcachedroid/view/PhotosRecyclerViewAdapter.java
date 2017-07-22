@@ -17,6 +17,7 @@ import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
     private List<String> itemsData;
@@ -31,9 +32,10 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
         notifyItemInserted(position);
     }
 
-    public synchronized void remove(int position) {
-        itemsData.remove(position);
-        notifyItemRemoved(position);
+    public synchronized void remove(String item) {
+        int remove_index = itemsData.indexOf(item);
+        itemsData.remove(remove_index);
+        notifyItemRemoved(remove_index);
     }
 
     @Override

@@ -32,7 +32,7 @@ public class ImageDownFileModule extends BaseDownFileModule {
     @Override
     public Object getConvertedData(byte[] data) {
         if (data == null) return null;
-        Bitmap bitmap = BitmapHelper.decodeSampledBitmapFromBytes(data, new Rect(10, 10, 10, 10), 100, 100);
+        Bitmap bitmap = BitmapHelper.decodeSampledBitmapFromBytes(data, new Rect(10, 10, 10, 10), 250, 250);
         return bitmap;
     }
 

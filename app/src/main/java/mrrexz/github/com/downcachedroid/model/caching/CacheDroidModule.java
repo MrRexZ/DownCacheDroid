@@ -24,7 +24,15 @@ import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
 @Singleton
 public class CacheDroidModule {
 
-    LruCache<String, Pair<byte[], BaseDownFileModule>> lruCache = new LruCache<String, Pair<byte[], BaseDownFileModule>>(getDefaultLruCacheSize());
+    LruCache<String, Pair<byte[], BaseDownFileModule>> lruCache = new LruCache<String, Pair<byte[], BaseDownFileModule>>(getDefaultLruCacheSize()) {
+        @Override
+        protected void entryRemoved(boolean evicted, String key, Pair<byte[], BaseDownFileModule> oldValue, Pair<byte[], BaseDownFileModule> newValue) {
+            super.entryRemoved(evicted, key, oldValue, newValue);
+            if (evicted) {
+                dataUpdateListener.cacheElemRemoved(key);
+            }
+        }
+    };
     public Set<BaseDownFileModule> supportedDownTypes;
     DataUpdateListener dataUpdateListener;
 
@@ -32,6 +40,8 @@ public class CacheDroidModule {
     public CacheDroidModule(Set<BaseDownFileModule> supportedDownTypes) {
         this.supportedDownTypes = supportedDownTypes;
     }
+
+
 
     @Provides
     CacheDroidModule provideCacheDroidModuleInstance() {
@@ -52,7 +62,7 @@ public class CacheDroidModule {
 
 
     public synchronized void insertToCache(String key, byte[] is, BaseDownFileModule downFileType){
-        dataUpdateListener.cacheUpdated(key);
+        dataUpdateListener.cacheElemAdded(key);
         lruCache.put(key, new Pair<>(is, downFileType));
     }
 
