@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.support.v7.widget.RecyclerView;
 import mrrexz.github.com.downcachedroid.R;
+import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
@@ -21,10 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
     private List<String> itemsData;
-    private CacheDroidModule cacheDroidModule;
-    public PhotosRecyclerViewAdapter(List<String> itemsData, CacheDroidModule cacheDroidModule) {
+    private DownloadProcDroid downloadProcDroid;
+    public PhotosRecyclerViewAdapter(List<String> itemsData, DownloadProcDroid downloadProcDroid) {
         this.itemsData = itemsData;
-        this.cacheDroidModule = cacheDroidModule;
+        this.downloadProcDroid = downloadProcDroid;
     }
 
     public synchronized void add(int position, String item) {
@@ -51,14 +52,19 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         String key_url = itemsData.get(position);
-        byte[] imageStream = cacheDroidModule.getDataFromCache(key_url);
+        byte[] imageStream = downloadProcDroid.cacheDroidModule.getDataFromCache(key_url);
         if ( imageStream != null ) {
-            viewHolder.imgViewIcon.setImageBitmap(BitmapHelper.decodeSampledBitmapFromBytes(imageStream, new Rect(100, 100, 100, 100), 350, 350));
+            viewHolder.imgViewIcon.setImageBitmap(BitmapHelper.decodeSampledBitmapFromBytes(imageStream, new Rect(100, 100, 100, 100), 350, 350).get());
         }
         else {
-            BitmapWorkerTask bitmapWorkerTask = new BitmapWorkerTask(viewHolder.imgViewIcon, cacheDroidModule);
-            bitmapWorkerTask.execute(key_url);
+            if (downloadProcDroid.downloadInProgress(key_url)) {
+                BitmapWorkerTask bitmapWorkerTask = new BitmapWorkerTask(viewHolder.imgViewIcon, downloadProcDroid);
+                bitmapWorkerTask.execute(key_url);
+            } else {
+                downloadProcDroid.asyncDownload(key_url);
+            }
         }
+
 
     }
 

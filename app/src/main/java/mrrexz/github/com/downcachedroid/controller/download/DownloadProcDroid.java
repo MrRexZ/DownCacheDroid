@@ -1,17 +1,12 @@
 package mrrexz.github.com.downcachedroid.controller.download;
 
 import android.util.Log;
+import android.util.LruCache;
 import android.util.Patterns;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -21,7 +16,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 
 import javax.inject.Inject;
@@ -30,7 +24,6 @@ import javax.inject.Singleton;
 import mrrexz.github.com.downcachedroid.helper.GenericCallback;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
-import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.ConnectionPool;
@@ -48,6 +41,8 @@ import okhttp3.Response;
 public class DownloadProcDroid {
 
     private String TAG = "DownloadProcDroid";
+    public ConcurrentHashMap<String, Call> activeDownloadCall = new ConcurrentHashMap<>();
+
     static OkHttpClient client = createOkHttpClient();
     private static OkHttpClient createOkHttpClient() {
         Dispatcher dispatcher = new Dispatcher();
@@ -69,7 +64,7 @@ public class DownloadProcDroid {
 
 //    public Call cacheWebContents(String url) {
 //        try {
-//            Call cacheWebContentsCall = getWebResLinks(url, this::cache);
+//            Call cacheWebContentsCall = getWebResLinks(url, this::downloadAndCache);
 //            return cacheWebContentsCall;
 //        } catch (IOException e) {
 //            e.printStackTrace();
@@ -95,9 +90,9 @@ public class DownloadProcDroid {
                 successCallback.onValue(extractLinks(pageRes));
             }
         });
-
         return call;
     }
+
 
     public Call asyncGetUrlMimeType(final String url, GenericCallback<MediaType> successCallback) {
         Request request = new Request.Builder()
@@ -190,47 +185,60 @@ public class DownloadProcDroid {
         return urlLinks;
     }
 
-    public void cache(List<String> urls) {
-        Map<String, BaseDownFileModule> mimeDownObjMap = new ConcurrentHashMap<>();
-        cacheDroidModule.supportedDownTypes.stream().forEach(supportedType -> {
-            mimeDownObjMap.put(supportedType.MIME, supportedType);
-        });
+    public void downloadAndCache(List<String> urls) {
 
         urls.forEach( url -> {
-            asyncGetUrlMimeType(url, new GenericCallback<MediaType>() {
-                @Override
-                public void onValue(MediaType mediaType) throws IOException {
-                    BaseDownFileModule downObjType = mimeDownObjMap.get(mediaType.type());
-                    if (downObjType != null) {
-                        byte[] cachedVal = cacheDroidModule.getDataFromCache(url);
-                        if (cachedVal == null) {
-                            downObjType.download(standardDownload(), url);
-                        }
-                    }
-                }
-            });
+            Call downloadCall = asyncDownload(url);
+            activeDownloadCall.put(url, downloadCall);
         });
     }
 
+    public boolean downloadInProgress(String url) {
+        return activeDownloadCall.get(url) != null;
+    }
+
+    private ConcurrentHashMap<String, BaseDownFileModule> getAllSupportedTypes() {
+        ConcurrentHashMap<String, BaseDownFileModule> mimeDownObjMap = new ConcurrentHashMap<>();
+        cacheDroidModule.supportedDownTypes.stream().forEach(supportedType -> {
+            mimeDownObjMap.put(supportedType.MIME, supportedType);
+        });
+        return mimeDownObjMap;
+    }
 
 
-    public BiFunction<String, BaseDownFileModule, Call> standardDownload() {
+    public Call asyncDownload(String url) {
+        return asyncGetUrlMimeType(url, new GenericCallback<MediaType>() {
+            @Override
+            public void onValue(MediaType mediaType) throws IOException {
+                BaseDownFileModule downObjType = getAllSupportedTypes().get(mediaType.type());
+                if (downObjType != null) {
+                    byte[] cachedVal = cacheDroidModule.getDataFromCache(url);
+                    if (cachedVal == null) {
+                        downObjType.download(defaultDownload(), url);
+                    }
+                }
+            }
+        });
+    }
+
+    public BiFunction<String, BaseDownFileModule, Call> defaultDownload() {
         return (String url, BaseDownFileModule fileType) -> {
             Request request = new Request.Builder()
                     .url(url)
                     .build();
             Call call = client.newCall(request);
-            call.enqueue(normalSuccessCallback(url, fileType));
+            call.enqueue(cache(url, fileType));
             return call;
         };
     }
 
-    Callback normalSuccessCallback(String url, BaseDownFileModule fileType) {
+    Callback cache(String url, BaseDownFileModule fileType) {
         return new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
-                Log.d(TAG, "On Failure : Redownloading..."  + e.getMessage());
-                //call.clone().enqueue(normalSuccessCallback(url, fileType));
+                Log.d(TAG, "On Failure "  + e.getMessage());
+                activeDownloadCall.remove(url);
+                call.clone().enqueue(cache(url, fileType));
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
@@ -238,11 +246,13 @@ public class DownloadProcDroid {
                     byte[] bytesData = response.body().bytes();
                     Log.d(TAG, url);
                     cacheDroidModule.insertToCache(url, bytesData, fileType);
-                    //afterCache.onValue(url);
                 }
                 catch (Exception e) {
                     Log.d(TAG, " Exception : " + e.getMessage());
-                    //call.clone().enqueue(normalSuccessCallback(url, fileType));
+                    call.clone().enqueue(cache(url, fileType));
+                }
+                finally {
+                    activeDownloadCall.remove(url);
                 }
 
             }

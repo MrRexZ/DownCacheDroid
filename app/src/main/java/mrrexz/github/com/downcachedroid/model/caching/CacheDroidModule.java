@@ -23,12 +23,13 @@ import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
 @Module
 @Singleton
 public class CacheDroidModule {
-
-    LruCache<String, Pair<byte[], BaseDownFileModule>> lruCache = new LruCache<String, Pair<byte[], BaseDownFileModule>>(getDefaultLruCacheSize()) {
+    private static final String TAG = CacheDroidModule.class.getName();
+    private LruCache<String, Pair<byte[], BaseDownFileModule>> lruCache = new LruCache<String, Pair<byte[], BaseDownFileModule>>(getDefaultLruCacheSize()) {
         @Override
         protected void entryRemoved(boolean evicted, String key, Pair<byte[], BaseDownFileModule> oldValue, Pair<byte[], BaseDownFileModule> newValue) {
             super.entryRemoved(evicted, key, oldValue, newValue);
             if (evicted) {
+                Log.d(TAG, "Cache element Evicted");
                 dataUpdateListener.cacheElemRemoved(key);
             }
         }
@@ -49,8 +50,10 @@ public class CacheDroidModule {
         return this;
     }
 
-    public synchronized void addNewSupportedType(BaseDownFileModule baseDownFileModule) {
-        supportedDownTypes.add(baseDownFileModule);
+    public void addNewSupportedType(BaseDownFileModule baseDownFileModule) {
+        synchronized (supportedDownTypes) {
+            supportedDownTypes.add(baseDownFileModule);
+        }
     }
 
     public void setDataUpdateListener(DataUpdateListener dataUpdateListener) {
@@ -59,31 +62,37 @@ public class CacheDroidModule {
     }
 
 
-    public synchronized void insertToCache(String key, byte[] is, BaseDownFileModule downFileType){
-        dataUpdateListener.cacheElemAdded(key);
-        lruCache.put(key, new Pair<>(is, downFileType));
+    public void insertToCache(String key, byte[] is, BaseDownFileModule downFileType){
+        synchronized(lruCache) {
+            dataUpdateListener.cacheElemAdded(key);
+            lruCache.put(key, new Pair<>(is, downFileType));
+        }
     }
 
     @Provides
-    public synchronized byte[] getDataFromCache(String key)  {
+    public byte[] getDataFromCache(String key)  {
         try {
-            return lruCache.get(key).first;
+            synchronized (lruCache) {
+                return lruCache.get(key).first;
+            }
         } catch (Exception e) {
             return null;
         }
     }
 
     @Provides
-    public synchronized BaseDownFileModule getTypeFromCache(String key) {
+    public BaseDownFileModule getTypeFromCache(String key) {
         try {
-            return lruCache.get(key).second;
+            synchronized (lruCache) {
+                return lruCache.get(key).second;
+            }
         } catch (Exception e) {
             return null;
         }
     }
 
     @Provides
-    public synchronized Object getConvertedDataFromCache(String key)  {
+    public Object getConvertedDataFromCache(String key)  {
         try {
             return getTypeFromCache(key).getConvertedData(getDataFromCache(key));
         } catch (Exception e) {
@@ -91,13 +100,16 @@ public class CacheDroidModule {
         }
     }
 
-    public synchronized void resizeCache(int maxSize){
-        lruCache.resize(maxSize);
+    public void resizeCache(int maxSize){
+        synchronized (lruCache) {
+            lruCache.resize(maxSize);
+        }
     }
 
     public static int getDefaultLruCacheSize() {
-        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() );
         final int cacheSize = maxMemory / 8;
+        Log.d("Default Memory size", Integer.toString(cacheSize));
         return cacheSize;
     }
 

@@ -13,55 +13,59 @@ import android.widget.ImageView;
 
 import java.lang.ref.WeakReference;
 
+import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import mrrexz.github.com.downcachedroid.helper.AsyncDrawable;
 import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
-public class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap> {
+public class BitmapWorkerTask extends AsyncTask<String, Void, WeakReference<Bitmap>> {
     public static final String TAG = BitmapWorkerTask.class.getName();
 
     private String key_url;
 
     private final WeakReference<ImageView> imageViewReference;
-    private CacheDroidModule cacheDroidModule;
-    public BitmapWorkerTask(ImageView imageView, CacheDroidModule cacheDroidModule) {
+    private DownloadProcDroid downloadProcDroid;
+    public BitmapWorkerTask(ImageView imageView, DownloadProcDroid downloadProcDroid) {
         // Use a WeakReference to ensure the ImageView can be garbage collected
         imageViewReference = new WeakReference<>(imageView);
-        this.cacheDroidModule = cacheDroidModule;
+        this.downloadProcDroid = downloadProcDroid;
     }
 
     // Decode image in background.
     @Override
-    protected Bitmap doInBackground(String... params) {
+    protected WeakReference<Bitmap> doInBackground(String... params) {
         key_url = params[0];
-        //TODO : Don't wait infinitely. Make an async request the resource if null. Then in the async, check to ensure the cache is not null, and proceed to download if download is not in progress.
 
-        while (cacheDroidModule.getDataFromCache(key_url) == null) {}
+        while(downloadProcDroid.cacheDroidModule.getDataFromCache(key_url) == null) {
+            if (!downloadProcDroid.downloadInProgress(key_url)) {
+                //TODO: return default bitmap image
+                return null;
+            }
+        }
+
         return decodeBitmapFromCache(key_url);
     }
 
     // Once complete, see if ImageView is still around and set bitmap.
     @Override
-    protected void onPostExecute(Bitmap bitmap) {
+    protected void onPostExecute(WeakReference<Bitmap> wrbitmap) {
         Log.d("OnPostExecute", "Done");
-        if (isCancelled()) {
-            bitmap = null;
-        }
+//        if (isCancelled()) {
+//            wrbitmap.get() = null;
+//        }
 
-        if (bitmap != null) {
+        if (wrbitmap.get() != null) {
             final ImageView imageView = imageViewReference.get();
-            final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-            imageView.setImageBitmap(bitmap);
-//            if (this == bitmapWorkerTask && imageView != null) {
-//                imageView.setImageBitmap(bitmap);
-//            }
+            if (imageView != null) {
+                imageView.setImageBitmap(wrbitmap.get());
+            }
         }
     }
 
-    public Bitmap decodeBitmapFromCache(String key_url) {
-        while (cacheDroidModule.getDataFromCache(key_url) == null){}
+    public WeakReference<Bitmap> decodeBitmapFromCache(String key_url) {
+        while (downloadProcDroid.cacheDroidModule.getDataFromCache(key_url) == null){}
         Log.d("BITMAP WorkerTask", "Decoding...");
-        return BitmapHelper.decodeSampledBitmapFromBytes(cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 250, 250);
+        return BitmapHelper.decodeSampledBitmapFromBytes(downloadProcDroid.cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 250, 250);
     }
 
     public static void cancelWork(ImageView imageView) {
