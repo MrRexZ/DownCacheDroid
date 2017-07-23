@@ -57,9 +57,9 @@ public class CacheDroidModule extends LruCache<String, Pair<Object, BaseDownFile
     }
 
 
-    public synchronized void insertToCache(String key, Object is, BaseDownFileModule downFileType){
+    public synchronized void insertToCache(String key, Object data, BaseDownFileModule downFileType){
+        put(key, new Pair<>(data, downFileType));
         dataUpdateListener.cacheElemAdded(key);
-        put(key, new Pair<>(is, downFileType));
     }
 
     public synchronized Object getDataFromCache(String key)  {
@@ -110,19 +110,12 @@ public class CacheDroidModule extends LruCache<String, Pair<Object, BaseDownFile
 
     @Override
     protected int sizeOf(String key, Pair<Object, BaseDownFileModule> value) {
-        try {
-            return objToByte((Object)value.first).length / 1024;
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (value != null) {
+            return value.second.determineSizeInCache(value.first) / 1024;
         }
-        return 0;
+        else {
+            return 0;
+        }
     }
 
-
-     static byte[] objToByte(Object javaObj) throws IOException {
-        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        ObjectOutputStream objStream = new ObjectOutputStream(byteStream);
-        objStream.writeObject((Object)javaObj);
-        return byteStream.toByteArray();
-    }
 }

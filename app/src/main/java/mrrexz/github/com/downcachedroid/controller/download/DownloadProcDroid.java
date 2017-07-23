@@ -1,7 +1,6 @@
 package mrrexz.github.com.downcachedroid.controller.download;
 
 import android.util.Log;
-import android.util.LruCache;
 import android.util.Patterns;
 
 import java.io.IOException;
@@ -15,7 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
@@ -245,7 +243,7 @@ public class DownloadProcDroid {
             public void onResponse(Call call, final Response response) throws IOException {
                 try {
                     byte[] bytesData = response.body().bytes();
-                    Object convertedType = fileType.convertProc(bytesData);
+                    Object convertedType = fileType.convertDownloadedData(bytesData);
                     Log.d(TAG, url);
                     cacheDroidModule.insertToCache(url, convertedType, fileType);
                 }

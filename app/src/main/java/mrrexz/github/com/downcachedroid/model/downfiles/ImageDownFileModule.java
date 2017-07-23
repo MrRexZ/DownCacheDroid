@@ -33,7 +33,6 @@ public class ImageDownFileModule extends BaseDownFileModule {
     public Object getConvertedData(Object data) {
         if (data == null) return null;
         return (Bitmap) data;
-//        return BitmapHelper.decodeSampledBitmapFromBytes(data, new Rect(10, 10, 10, 10), 250, 250).get();
     }
 
     @Override
@@ -42,7 +41,16 @@ public class ImageDownFileModule extends BaseDownFileModule {
     }
 
     @Override
-    public Object convertProc(byte[] networkInput) {
+    public Object convertDownloadedData(byte[] networkInput) {
         return BitmapHelper.decodeSampledBitmapFromBytes(networkInput, null, 150, 150);
+    }
+
+    @Override
+    public int determineSizeInCache(Object data) {
+        if (data == null){
+            return 0;
+        }
+        Bitmap bitmap = (Bitmap) data;
+        return bitmap.getByteCount();
     }
 }
