@@ -42,8 +42,9 @@ import okhttp3.Response;
 public class DownloadProcDroid {
 
     private String TAG = "DownloadProcDroid";
-    public ConcurrentHashMap<String, Call> activeDownloadCall = new ConcurrentHashMap<>();
-    public Set<String> failedDownloadCall = ConcurrentHashMap.newKeySet();
+    private ConcurrentHashMap<String, Call> activeDownloadCall = new ConcurrentHashMap<>();
+    private Set<String> failedDownloads = ConcurrentHashMap.newKeySet();
+    private Set<String> webPagesVisited = ConcurrentHashMap.newKeySet();
 
     static OkHttpClient client = createOkHttpClient();
     private static OkHttpClient createOkHttpClient() {
@@ -84,11 +85,12 @@ public class DownloadProcDroid {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
-
+                Log.d(TAG, "Web pages content fetch failure!" );
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 String pageRes = response.body().string();
+                addVisitedWebPage(url);
                 successCallback.onValue(extractLinks(pageRes));
             }
         });
@@ -165,9 +167,9 @@ public class DownloadProcDroid {
                             .build();
                     Response response = client.newCall(request).execute();
                     MediaType contentType = MediaType.parse(response.header("Content-Type"));
-                    if (contentType.type().equals(targetMIME))
+                    if (contentType.type().equals(targetMIME)) {
                         filteredURL.add(urls[i]);
-
+                    }
                 }
 
                 return filteredURL;
@@ -189,10 +191,9 @@ public class DownloadProcDroid {
         return new ArrayList<String>(urlLinks);
     }
 
-    public void downloadAndCache(List<String> urls) {
-
+    public void downloadAndCache(List<String> urls, GenericCallback<String> successCallback) {
         urls.forEach( url -> {
-            Call downloadCall = asyncDownload(url);
+            Call downloadCall = asyncDownload(url, successCallback);
             activeDownloadCall.put(url, downloadCall);
         });
     }
@@ -210,7 +211,11 @@ public class DownloadProcDroid {
     }
 
 
-    public Call asyncDownload(String url) {
+    public Call asyncDownload(String url, GenericCallback<String> successDownloadAction) {
+
+        if (failedDownloads.contains(url)) {
+            failedDownloads.remove(url);
+        }
         return asyncGetUrlMimeType(url, new GenericCallback<MediaType>() {
             @Override
             public void onValue(MediaType mediaType) throws IOException {
@@ -218,31 +223,32 @@ public class DownloadProcDroid {
                 if (downObjType != null) {
                     Object cachedVal = cacheDroidModule.getDataFromCache(url);
                     if (cachedVal == null) {
-                        downObjType.download(defaultDownload(url));
+                        downObjType.download(defaultDownload(url, successDownloadAction));
                     }
                 }
             }
         });
     }
 
-    private Function<BaseDownFileModule, Call> defaultDownload(String url) {
+    private Function<BaseDownFileModule, Call> defaultDownload(String url, GenericCallback<String> successCallback) {
         return (BaseDownFileModule fileType) -> {
             Request request = new Request.Builder()
                     .url(url)
                     .build();
             Call call = client.newCall(request);
-            call.enqueue(cache(url, fileType));
+            call.enqueue(cache(url, fileType, successCallback));
             return call;
         };
     }
 
-    Callback cache(String url, BaseDownFileModule fileType) {
+    private Callback cache(String url, BaseDownFileModule fileType, GenericCallback<String> successCallback) {
         return new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
                 Log.d(TAG, "On Failure "  + e.getMessage());
                 activeDownloadCall.remove(url);
-                call.clone().enqueue(cache(url, fileType));
+                failedDownloads.add(url);
+                //call.clone().enqueue(cache(url, fileType, successCallback));
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
@@ -251,10 +257,16 @@ public class DownloadProcDroid {
                     Object convertedType = fileType.convertDownloadedData(bytesData);
                     Log.d(TAG, url);
                     cacheDroidModule.insertToCache(url, convertedType, fileType);
+                    if (failedDownloads.contains(url)){
+                        Log.d(TAG, "Previous failed download is downloaded successfully");
+                        failedDownloads.remove(url);
+                    }
+                    successCallback.onValue(url);
                 }
                 catch (Exception e) {
-                    Log.d(TAG, " Exception : " + e.getMessage());
-                    call.clone().enqueue(cache(url, fileType));
+                    Log.d(TAG, " Response not converted : " + e.getMessage());
+                    //call.clone().enqueue(cache(url, fileType));
+                    failedDownloads.add(url);
                 }
                 finally {
                     activeDownloadCall.remove(url);
@@ -264,8 +276,42 @@ public class DownloadProcDroid {
         };
     }
 
-    public void asyncRedownload() {
+    public ConcurrentHashMap<String, Call> asyncRedownloadFailedAll(GenericCallback<String> successCallback) {
+        List<String> failedDownloadUrls = new ArrayList<>(failedDownloads);
+        ConcurrentHashMap<String, Call> redownloadCall = new ConcurrentHashMap<>();
+        failedDownloadUrls.forEach(failedDownloadUrl -> redownloadCall.put(failedDownloadUrl, asyncDownload(failedDownloadUrl, successCallback)));
+        return redownloadCall;
+    }
 
+    public ConcurrentHashMap<String, Call> asyncRedownloadAll(GenericCallback<List<String>> successCallback){
+        List<String> visitedWebPages = getAllVisitedWebPages();
+        ConcurrentHashMap<String, Call> redownloadAllCall = new ConcurrentHashMap<>();
+        visitedWebPages.forEach(visitedWebPage -> {
+            try {
+                redownloadAllCall.put(visitedWebPage, getWebResLinks(visitedWebPage, successCallback));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return redownloadAllCall;
+    }
+
+
+    public void addVisitedWebPage(String url){
+        if (!webPagesVisited.contains(url)){
+            webPagesVisited.add(url);
+        }
+    }
+
+    public void removeVisitedWebPage(String url){
+        if (webPagesVisited.contains(url)){
+            webPagesVisited.remove(url);
+        }
+    }
+
+
+    public List<String> getAllVisitedWebPages(){
+        return new ArrayList<String>(webPagesVisited);
     }
 
 

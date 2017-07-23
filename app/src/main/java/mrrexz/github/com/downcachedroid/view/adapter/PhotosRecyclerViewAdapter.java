@@ -20,6 +20,7 @@ import java.util.List;
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
     private List<String> itemsData;
     private DownloadProcDroid downloadProcDroid;
+
     public PhotosRecyclerViewAdapter(List<String> itemsData, DownloadProcDroid downloadProcDroid) {
         this.itemsData = itemsData;
         this.downloadProcDroid = downloadProcDroid;
@@ -57,8 +58,6 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
             if (downloadProcDroid.downloadInProgress(key_url)) {
                 BitmapWorkerTask bitmapWorkerTask = new BitmapWorkerTask(viewHolder.imgViewIcon, downloadProcDroid);
                 bitmapWorkerTask.execute(key_url);
-            } else {
-                downloadProcDroid.asyncDownload(key_url);
             }
         }
 
@@ -66,15 +65,12 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
         public ImageView imgViewIcon;
-
         public ViewHolder(View itemLayoutView) {
             super(itemLayoutView);
             imgViewIcon = (ImageView) itemLayoutView.findViewById(R.id.downed_img);
         }
     }
-
 
     @Override
     public int getItemCount() {

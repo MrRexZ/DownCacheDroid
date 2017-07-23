@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ import java.util.Set;
 import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.controller.DaggerDownCacheApp;
 import mrrexz.github.com.downcachedroid.helper.DataUpdateListener;
+import mrrexz.github.com.downcachedroid.helper.GenericCallback;
 import mrrexz.github.com.downcachedroid.view.adapter.PhotosRecyclerViewAdapter;
 import mrrexz.github.com.downcachedroid.view.helper.SpacesItemDecoration;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
@@ -83,13 +86,32 @@ public class MainActivity extends AppCompatActivity {
         Log.d("BITMAP Main", "Preparing...");
         try {
             downCacheApp.getDownloadProcInstance().getWebResLinks(testString, (urls) -> {
-                downCacheApp.getDownloadProcInstance().downloadAndCache(urls);
+                downCacheApp.getDownloadProcInstance().downloadAndCache(urls, new GenericCallback<String>() {
+                    @Override
+                    public void onValue(String value) throws IOException {
+                        //Do nothing..
+                    }
+                });
                 Log.d(TAG, "Started downloading bitmap!!");
 
             });
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        Button failedDownloadButton = (Button) findViewById(R.id.redownloadFailedButton);
+        failedDownloadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                downCacheApp.getDownloadProcInstance().asyncRedownloadFailedAll(new GenericCallback<String>() {
+                    @Override
+                    public void onValue(String value) throws IOException {
+                        Log.d(TAG, "Redownload successfull : " + value);
+                        dataUpdateListener.cacheElemAdded(value);
+                    }
+                });
+            }
+        });
     }
 
 

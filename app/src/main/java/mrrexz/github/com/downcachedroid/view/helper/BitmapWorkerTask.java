@@ -17,15 +17,47 @@ import mrrexz.github.com.downcachedroid.helper.AsyncDrawable;
 
 public class BitmapWorkerTask extends AsyncTask<String, Void, WeakReference<Bitmap>> {
     public static final String TAG = BitmapWorkerTask.class.getName();
-
-    private String key_url;
-
     private final WeakReference<ImageView> imageViewReference;
+    private String key_url;
     private DownloadProcDroid downloadProcDroid;
     public BitmapWorkerTask(ImageView imageView, DownloadProcDroid downloadProcDroid) {
         // Use a WeakReference to ensure the ImageView can be garbage collected
         imageViewReference = new WeakReference<>(imageView);
         this.downloadProcDroid = downloadProcDroid;
+    }
+
+    public static void cancelWork(ImageView imageView) {
+        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+        if (bitmapWorkerTask != null) {
+            bitmapWorkerTask.cancel(true);
+        }
+    }
+
+    public static boolean cancelPotentialWork(String key_url, ImageView imageView) {
+        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+
+        if (bitmapWorkerTask != null) {
+            if (!bitmapWorkerTask.key_url.equals(key_url)) {
+                // Cancel previous task
+                bitmapWorkerTask.cancel(true);
+            } else {
+                // The same work is already in progress
+                return false;
+            }
+        }
+        // No task associated with the ImageView, or an existing task was cancelled
+        return true;
+    }
+
+    private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
+        if (imageView != null) {
+            final Drawable drawable = imageView.getDrawable();
+            if (drawable instanceof AsyncDrawable) {
+                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
+                return asyncDrawable.getBitmapWorkerTask();
+            }
+        }
+        return null;
     }
 
     // Decode image in background.
@@ -61,40 +93,5 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, WeakReference<Bitm
         while (downloadProcDroid.cacheDroidModule.getDataFromCache(key_url) == null){}
         Log.d("BITMAP WorkerTask", "Decoding...");
         return new WeakReference<Bitmap>((Bitmap) downloadProcDroid.cacheDroidModule.getDataFromCache(key_url));
-        //return BitmapHelper.decodeSampledBitmapFromBytes(downloadProcDroid.cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 250, 250);
-    }
-
-    public static void cancelWork(ImageView imageView) {
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-        if (bitmapWorkerTask != null) {
-            bitmapWorkerTask.cancel(true);
-        }
-    }
-
-    public static boolean cancelPotentialWork(String key_url, ImageView imageView) {
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
-
-        if (bitmapWorkerTask != null) {
-            if (!bitmapWorkerTask.key_url.equals(key_url)) {
-                // Cancel previous task
-                bitmapWorkerTask.cancel(true);
-            } else {
-                // The same work is already in progress
-                return false;
-            }
-        }
-        // No task associated with the ImageView, or an existing task was cancelled
-        return true;
-    }
-
-    private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
-        if (imageView != null) {
-            final Drawable drawable = imageView.getDrawable();
-            if (drawable instanceof AsyncDrawable) {
-                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
-                return asyncDrawable.getBitmapWorkerTask();
-            }
-        }
-        return null;
     }
 }
