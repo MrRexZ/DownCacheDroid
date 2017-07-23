@@ -5,7 +5,9 @@ import android.util.Patterns;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -41,6 +43,7 @@ public class DownloadProcDroid {
 
     private String TAG = "DownloadProcDroid";
     public ConcurrentHashMap<String, Call> activeDownloadCall = new ConcurrentHashMap<>();
+    public Set<String> failedDownloadCall = ConcurrentHashMap.newKeySet();
 
     static OkHttpClient client = createOkHttpClient();
     private static OkHttpClient createOkHttpClient() {
@@ -175,13 +178,15 @@ public class DownloadProcDroid {
     }
 
     private List<String> extractLinks(String text) {
-        List<String> urlLinks = new ArrayList<String>();
+       Set<String> urlLinks = new HashSet<String>();
         Matcher urlMatcher = Patterns.WEB_URL.matcher(text);
         while (urlMatcher.find()) {
             String url = urlMatcher.group();
-            urlLinks.add(url);
+            if (!urlLinks.contains(url)) {
+                urlLinks.add(url);
+            }
         }
-        return urlLinks;
+        return new ArrayList<String>(urlLinks);
     }
 
     public void downloadAndCache(List<String> urls) {
@@ -220,7 +225,7 @@ public class DownloadProcDroid {
         });
     }
 
-    public Function<BaseDownFileModule, Call> defaultDownload(String url) {
+    private Function<BaseDownFileModule, Call> defaultDownload(String url) {
         return (BaseDownFileModule fileType) -> {
             Request request = new Request.Builder()
                     .url(url)
@@ -257,6 +262,10 @@ public class DownloadProcDroid {
 
             }
         };
+    }
+
+    public void asyncRedownload() {
+
     }
 
 

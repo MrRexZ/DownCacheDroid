@@ -1,12 +1,10 @@
-package mrrexz.github.com.downcachedroid.view;
+package mrrexz.github.com.downcachedroid.view.screen;
 
 import android.app.ActivityManager;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
@@ -18,7 +16,8 @@ import java.util.Set;
 import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.controller.DaggerDownCacheApp;
 import mrrexz.github.com.downcachedroid.helper.DataUpdateListener;
-import mrrexz.github.com.downcachedroid.helper.SpacesItemDecoration;
+import mrrexz.github.com.downcachedroid.view.adapter.PhotosRecyclerViewAdapter;
+import mrrexz.github.com.downcachedroid.view.helper.SpacesItemDecoration;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;

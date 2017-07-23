@@ -1,8 +1,6 @@
-package mrrexz.github.com.downcachedroid.view;
+package mrrexz.github.com.downcachedroid.view.adapter;
 
 import android.graphics.Bitmap;
-import android.graphics.Rect;
-import android.support.constraint.solver.Cache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,8 +8,7 @@ import android.widget.ImageView;
 import android.support.v7.widget.RecyclerView;
 import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
-import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
-import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
+import mrrexz.github.com.downcachedroid.view.helper.BitmapWorkerTask;
 
 /**
  * Created by antho on 7/20/2017.
@@ -19,7 +16,6 @@ import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
     private List<String> itemsData;

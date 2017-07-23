@@ -14,7 +14,6 @@ import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
 public class BitmapHelper {
     static String LOG_TAG = BitmapHelper.class.toString();
-
     static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;

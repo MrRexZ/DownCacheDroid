@@ -1,11 +1,10 @@
-package mrrexz.github.com.downcachedroid.view;
+package mrrexz.github.com.downcachedroid.view.helper;
 
 /**
  * Created by antho on 7/20/2017.
  */
 
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -15,8 +14,6 @@ import java.lang.ref.WeakReference;
 
 import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 import mrrexz.github.com.downcachedroid.helper.AsyncDrawable;
-import mrrexz.github.com.downcachedroid.helper.BitmapHelper;
-import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
 public class BitmapWorkerTask extends AsyncTask<String, Void, WeakReference<Bitmap>> {
     public static final String TAG = BitmapWorkerTask.class.getName();

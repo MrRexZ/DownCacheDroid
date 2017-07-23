@@ -1,4 +1,4 @@
-package mrrexz.github.com.downcachedroid.helper;
+package mrrexz.github.com.downcachedroid.view.helper;
 
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
