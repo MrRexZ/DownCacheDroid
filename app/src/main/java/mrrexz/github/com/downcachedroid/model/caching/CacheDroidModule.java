@@ -4,6 +4,9 @@ import android.support.v4.util.LruCache;
 import android.support.v4.util.Pair;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,24 +25,15 @@ import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
 
 @Module
 @Singleton
-public class CacheDroidModule {
+public class CacheDroidModule extends LruCache<String, Pair<Object, BaseDownFileModule>> {
     private static final String TAG = CacheDroidModule.class.getName();
-    private LruCache<String, Pair<byte[], BaseDownFileModule>> lruCache = new LruCache<String, Pair<byte[], BaseDownFileModule>>(getDefaultLruCacheSize()) {
-        @Override
-        protected void entryRemoved(boolean evicted, String key, Pair<byte[], BaseDownFileModule> oldValue, Pair<byte[], BaseDownFileModule> newValue) {
-            super.entryRemoved(evicted, key, oldValue, newValue);
-            if (evicted) {
-                Log.d(TAG, "Cache element Evicted");
-                dataUpdateListener.cacheElemRemoved(key);
-            }
-        }
-    };
 
     public Set<BaseDownFileModule> supportedDownTypes;
     DataUpdateListener dataUpdateListener;
 
     @Inject
     public CacheDroidModule(Set<BaseDownFileModule> supportedDownTypes) {
+        super(getDefaultLruCacheSize());
         this.supportedDownTypes = supportedDownTypes;
     }
 
@@ -49,6 +43,7 @@ public class CacheDroidModule {
     CacheDroidModule provideCacheDroidModuleInstance() {
         return this;
     }
+
 
     public void addNewSupportedType(BaseDownFileModule baseDownFileModule) {
         synchronized (supportedDownTypes) {
@@ -62,30 +57,23 @@ public class CacheDroidModule {
     }
 
 
-    public void insertToCache(String key, byte[] is, BaseDownFileModule downFileType){
-        synchronized(lruCache) {
-            dataUpdateListener.cacheElemAdded(key);
-            lruCache.put(key, new Pair<>(is, downFileType));
-        }
+    public synchronized void insertToCache(String key, Object is, BaseDownFileModule downFileType){
+        dataUpdateListener.cacheElemAdded(key);
+        put(key, new Pair<>(is, downFileType));
     }
 
-    @Provides
-    public byte[] getDataFromCache(String key)  {
+    public synchronized Object getDataFromCache(String key)  {
         try {
-            synchronized (lruCache) {
-                return lruCache.get(key).first;
-            }
+            return (Object) get(key).first;
         } catch (Exception e) {
             return null;
         }
     }
 
     @Provides
-    public BaseDownFileModule getTypeFromCache(String key) {
+    public synchronized BaseDownFileModule getTypeFromCache(String key) {
         try {
-            synchronized (lruCache) {
-                return lruCache.get(key).second;
-            }
+            return get(key).second;
         } catch (Exception e) {
             return null;
         }
@@ -100,19 +88,41 @@ public class CacheDroidModule {
         }
     }
 
-    public void resizeCache(int maxSize){
-        synchronized (lruCache) {
-            lruCache.resize(maxSize);
-        }
+    public synchronized void resizeCache(int maxSize){
+        resize(maxSize);
     }
 
     public static int getDefaultLruCacheSize() {
-        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() );
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
         Log.d("Default Memory size", Integer.toString(cacheSize));
         return cacheSize;
     }
 
+    @Override
+    protected void entryRemoved(boolean evicted, String key, Pair<Object, BaseDownFileModule> oldValue, Pair<Object, BaseDownFileModule> newValue) {
+        super.entryRemoved(evicted, key, oldValue, newValue);
+        if (evicted) {
+            Log.d(TAG, "Cache element Evicted");
+            dataUpdateListener.cacheElemRemoved(key);
+        }
+    }
+
+    @Override
+    protected int sizeOf(String key, Pair<Object, BaseDownFileModule> value) {
+        try {
+            return objToByte((Object)value.first).length / 1024;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
 
+     static byte[] objToByte(Object javaObj) throws IOException {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        ObjectOutputStream objStream = new ObjectOutputStream(byteStream);
+        objStream.writeObject(javaObj);
+        return byteStream.toByteArray();
+    }
 }

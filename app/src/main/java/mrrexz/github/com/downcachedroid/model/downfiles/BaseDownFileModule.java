@@ -15,17 +15,15 @@ import okhttp3.Callback;
 
 public abstract class BaseDownFileModule {
 
-
-
-    Map<String, Call> urlCalls = new HashMap<>();
     public final String MIME;
 
     public BaseDownFileModule(String mime) {
         MIME = mime;
     }
 
-    public abstract Object getConvertedData(byte[] data);
-    public abstract void download(BiFunction<String, BaseDownFileModule, Call> standardDownloadLogic, String url) throws IOException;
+    public abstract Object getConvertedData(Object data);
+    public abstract Object convertProc(byte[] networkInput);
+    public abstract void download(Function<BaseDownFileModule, Call> standardDownloadLogic) throws IOException;
 
     @Override
     public boolean equals(Object o) {

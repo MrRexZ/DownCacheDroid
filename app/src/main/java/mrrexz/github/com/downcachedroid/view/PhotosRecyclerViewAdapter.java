@@ -1,5 +1,6 @@
 package mrrexz.github.com.downcachedroid.view;
 
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.constraint.solver.Cache;
 import android.view.LayoutInflater;
@@ -52,9 +53,9 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         String key_url = itemsData.get(position);
-        byte[] imageStream = downloadProcDroid.cacheDroidModule.getDataFromCache(key_url);
-        if ( imageStream != null ) {
-            viewHolder.imgViewIcon.setImageBitmap(BitmapHelper.decodeSampledBitmapFromBytes(imageStream, new Rect(100, 100, 100, 100), 350, 350).get());
+        Bitmap bitmap = (Bitmap)downloadProcDroid.cacheDroidModule.getDataFromCache(key_url);
+        if ( bitmap != null ) {
+            viewHolder.imgViewIcon.setImageBitmap(bitmap);
         }
         else {
             if (downloadProcDroid.downloadInProgress(key_url)) {

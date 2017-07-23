@@ -23,7 +23,7 @@ import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
 import mrrexz.github.com.downcachedroid.controller.DownCacheApp;
 
 public class MainActivity extends AppCompatActivity {
-
+    private final String TAG = MainActivity.class.getName();
     final String testString = "http://pastebin.com/raw/wgkJgazE";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
         final int memClass = ((ActivityManager) this.getApplicationContext().getSystemService(
                 Context.ACTIVITY_SERVICE)).getMemoryClass();
 
-        final int cacheSize = 1024 * 1024 * memClass / 8;
+        final int cacheSize = 1024 * memClass / 8;
         downCacheApp.getDownloadProcInstance().cacheDroidModule.resizeCache(cacheSize);
         Log.d("Memory size : ", Integer.toString(cacheSize));
         //DownloadProcDroid.cacheWebContents(testString);
@@ -53,14 +53,24 @@ public class MainActivity extends AppCompatActivity {
         DataUpdateListener dataUpdateListener = new DataUpdateListener() {
             @Override
             public void cacheElemAdded(String url) {
-                photosRecyclerViewAdapter.add(photosRecyclerViewAdapter.getItemCount(), url);
-                Log.d("BITMAP", "URL successfully added to recylcerview");
+                recyclerView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        photosRecyclerViewAdapter.add(photosRecyclerViewAdapter.getItemCount(), url);
+                        Log.d(TAG, "URL successfully added to recylcerview");
+                    }
+                });
             }
 
             @Override
             public void cacheElemRemoved(String url) {
-                photosRecyclerViewAdapter.remove(url);
-                Log.d("BITMAP", "Bitmap removed from Recyclerview");
+                recyclerView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        photosRecyclerViewAdapter.remove(url);
+                        Log.d(TAG, "Bitmap removed from Recyclerview");
+                    }
+                });
             }
 
         };
@@ -70,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             downCacheApp.getDownloadProcInstance().getWebResLinks(testString, (urls) -> {
                 downCacheApp.getDownloadProcInstance().downloadAndCache(urls);
-                Log.d("BITMAP Main", "Started!!");
+                Log.d(TAG, "Started downloading bitmap!!");
 
             });
         } catch (IOException e) {

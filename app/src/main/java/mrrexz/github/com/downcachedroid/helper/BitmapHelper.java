@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.util.Log;
 
-import java.lang.ref.WeakReference;
 
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 
@@ -39,7 +38,7 @@ public class BitmapHelper {
         return inSampleSize;
     }
 
-    public static WeakReference<Bitmap> decodeSampledBitmapFromBytes(byte[] bytesImage, Rect outPadding,
+    public static Bitmap decodeSampledBitmapFromBytes(byte[] bytesImage, Rect outPadding,
                                                                      int reqWidth, int reqHeight) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
@@ -53,6 +52,6 @@ public class BitmapHelper {
         // Decode bitmap with inSampleSize set
         options.inJustDecodeBounds = false;
         Log.d(LOG_TAG, "Decoding Bitmap");
-        return new WeakReference<>(BitmapFactory.decodeByteArray(bytesImage, 0, bytesImage.length, options));
+        return (BitmapFactory.decodeByteArray(bytesImage, 0, bytesImage.length, options));
     }
 }

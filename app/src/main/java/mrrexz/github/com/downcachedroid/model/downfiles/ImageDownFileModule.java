@@ -30,15 +30,19 @@ public class ImageDownFileModule extends BaseDownFileModule {
     }
 
     @Override
-    public Object getConvertedData(byte[] data) {
+    public Object getConvertedData(Object data) {
         if (data == null) return null;
-        return BitmapHelper.decodeSampledBitmapFromBytes(data, new Rect(10, 10, 10, 10), 250, 250).get();
+        return (Bitmap) data;
+//        return BitmapHelper.decodeSampledBitmapFromBytes(data, new Rect(10, 10, 10, 10), 250, 250).get();
     }
 
     @Override
-    public void download(BiFunction<String, BaseDownFileModule, Call> standardDownload, String url) throws IOException {
-        Call call = standardDownload.apply(url, ImageDownFileModule.this);
-        urlCalls.put(url, call);
+    public void download(Function<BaseDownFileModule, Call> standardDownload) throws IOException {
+        Call call = standardDownload.apply(ImageDownFileModule.this);
     }
 
+    @Override
+    public Object convertProc(byte[] networkInput) {
+        return BitmapHelper.decodeSampledBitmapFromBytes(networkInput, null, 150, 150);
+    }
 }

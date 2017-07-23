@@ -17,8 +17,9 @@ import mrrexz.github.com.downcachedroid.view.MainActivity;
 @Component(modules = { CacheDroidModule.class })
 @Singleton
 public interface DownCacheApp {
-    void injectCache(Set<BaseDownFileModule> cache);
     DownloadProcDroid getDownloadProcInstance();
+    void injectCache(Set<BaseDownFileModule> cache);
+//    <T> void injectType(T type);
 }
 
 

@@ -65,7 +65,8 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, WeakReference<Bitm
     public WeakReference<Bitmap> decodeBitmapFromCache(String key_url) {
         while (downloadProcDroid.cacheDroidModule.getDataFromCache(key_url) == null){}
         Log.d("BITMAP WorkerTask", "Decoding...");
-        return BitmapHelper.decodeSampledBitmapFromBytes(downloadProcDroid.cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 250, 250);
+        return new WeakReference<Bitmap>((Bitmap) downloadProcDroid.cacheDroidModule.getDataFromCache(key_url));
+        //return BitmapHelper.decodeSampledBitmapFromBytes(downloadProcDroid.cacheDroidModule.getDataFromCache(key_url), new Rect(10,10,10,10), 250, 250);
     }
 
     public static void cancelWork(ImageView imageView) {

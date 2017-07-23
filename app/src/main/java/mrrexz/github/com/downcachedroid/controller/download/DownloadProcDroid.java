@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 
 import javax.inject.Inject;
@@ -49,17 +50,17 @@ public class DownloadProcDroid {
         dispatcher.setMaxRequests(70);
         dispatcher.setMaxRequestsPerHost(20);
         return new OkHttpClient.Builder()
-                .dispatcher(dispatcher)
-                .connectionPool(new ConnectionPool(20 ,15000, TimeUnit.MILLISECONDS))
+                .connectionPool(new ConnectionPool(8 ,15000, TimeUnit.MILLISECONDS))
                 .build();
     }
     public final CacheDroidModule cacheDroidModule;
-
+    public Function<byte[], Object> convertFromByte;
 
     @Inject
     public DownloadProcDroid(CacheDroidModule cacheDroidModule) {
         this.cacheDroidModule = cacheDroidModule;
     }
+
 
 
 //    public Call cacheWebContents(String url) {
@@ -212,17 +213,17 @@ public class DownloadProcDroid {
             public void onValue(MediaType mediaType) throws IOException {
                 BaseDownFileModule downObjType = getAllSupportedTypes().get(mediaType.type());
                 if (downObjType != null) {
-                    byte[] cachedVal = cacheDroidModule.getDataFromCache(url);
+                    Object cachedVal = cacheDroidModule.getDataFromCache(url);
                     if (cachedVal == null) {
-                        downObjType.download(defaultDownload(), url);
+                        downObjType.download(defaultDownload(url));
                     }
                 }
             }
         });
     }
 
-    public BiFunction<String, BaseDownFileModule, Call> defaultDownload() {
-        return (String url, BaseDownFileModule fileType) -> {
+    public Function<BaseDownFileModule, Call> defaultDownload(String url) {
+        return (BaseDownFileModule fileType) -> {
             Request request = new Request.Builder()
                     .url(url)
                     .build();
@@ -244,8 +245,9 @@ public class DownloadProcDroid {
             public void onResponse(Call call, final Response response) throws IOException {
                 try {
                     byte[] bytesData = response.body().bytes();
+                    Object convertedType = fileType.convertProc(bytesData);
                     Log.d(TAG, url);
-                    cacheDroidModule.insertToCache(url, bytesData, fileType);
+                    cacheDroidModule.insertToCache(url, convertedType, fileType);
                 }
                 catch (Exception e) {
                     Log.d(TAG, " Exception : " + e.getMessage());
