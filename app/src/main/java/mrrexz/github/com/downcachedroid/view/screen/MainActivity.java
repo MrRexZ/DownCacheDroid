@@ -2,8 +2,8 @@ package mrrexz.github.com.downcachedroid.view.screen;
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -17,18 +17,19 @@ import java.util.Set;
 
 import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.controller.DaggerDownCacheApp;
+import mrrexz.github.com.downcachedroid.controller.DownCacheApp;
 import mrrexz.github.com.downcachedroid.helper.DataUpdateListener;
 import mrrexz.github.com.downcachedroid.helper.GenericCallback;
-import mrrexz.github.com.downcachedroid.view.adapter.PhotosRecyclerViewAdapter;
-import mrrexz.github.com.downcachedroid.view.helper.SpacesItemDecoration;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
-import mrrexz.github.com.downcachedroid.controller.DownCacheApp;
+import mrrexz.github.com.downcachedroid.view.adapter.PhotosRecyclerViewAdapter;
+import mrrexz.github.com.downcachedroid.view.helper.SpacesItemDecoration;
 
 public class MainActivity extends AppCompatActivity {
-    private final String TAG = MainActivity.class.getName();
     final String testString = "http://pastebin.com/raw/wgkJgazE";
+    private final String TAG = MainActivity.class.getName();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,9 +52,6 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         recyclerView.addItemDecoration(new SpacesItemDecoration(20));
-//        recyclerView.addItemDecoration(new DividerItemDecoration(this,
-//                DividerItemDecoration.VERTICAL));
-//        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         PhotosRecyclerViewAdapter photosRecyclerViewAdapter = new PhotosRecyclerViewAdapter(new ArrayList<>(), downCacheApp.getDownloadProcInstance());
         recyclerView.setAdapter(photosRecyclerViewAdapter);
 

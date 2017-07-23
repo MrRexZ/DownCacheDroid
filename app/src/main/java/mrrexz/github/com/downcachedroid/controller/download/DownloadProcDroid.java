@@ -41,12 +41,20 @@ import okhttp3.Response;
 @Singleton
 public class DownloadProcDroid {
 
+    static OkHttpClient client = createOkHttpClient();
+    static OkHttpClient contentDownloadClient = createOkHttpClient();
+    public final CacheDroidModule cacheDroidModule;
+    public Function<byte[], Object> convertFromByte;
     private String TAG = "DownloadProcDroid";
     private ConcurrentHashMap<String, Call> activeDownloadCall = new ConcurrentHashMap<>();
     private Set<String> failedDownloads = ConcurrentHashMap.newKeySet();
     private Set<String> webPagesVisited = ConcurrentHashMap.newKeySet();
 
-    static OkHttpClient client = createOkHttpClient();
+    @Inject
+    public DownloadProcDroid(CacheDroidModule cacheDroidModule) {
+        this.cacheDroidModule = cacheDroidModule;
+    }
+
     private static OkHttpClient createOkHttpClient() {
         Dispatcher dispatcher = new Dispatcher();
         dispatcher.setMaxRequests(70);
@@ -54,13 +62,6 @@ public class DownloadProcDroid {
         return new OkHttpClient.Builder()
                 .connectionPool(new ConnectionPool(8 ,15000, TimeUnit.MILLISECONDS))
                 .build();
-    }
-    public final CacheDroidModule cacheDroidModule;
-    public Function<byte[], Object> convertFromByte;
-
-    @Inject
-    public DownloadProcDroid(CacheDroidModule cacheDroidModule) {
-        this.cacheDroidModule = cacheDroidModule;
     }
 
 
@@ -193,8 +194,8 @@ public class DownloadProcDroid {
 
     public void downloadAndCache(List<String> urls, GenericCallback<String> successCallback) {
         urls.forEach( url -> {
-            Call downloadCall = asyncDownload(url, successCallback);
-            activeDownloadCall.put(url, downloadCall);
+            asyncDownload(url, successCallback);
+            //activeDownloadCall.put(url, downloadCall);
         });
     }
 
@@ -235,7 +236,7 @@ public class DownloadProcDroid {
             Request request = new Request.Builder()
                     .url(url)
                     .build();
-            Call call = client.newCall(request);
+            Call call = contentDownloadClient.newCall(request);
             call.enqueue(cache(url, fileType, successCallback));
             return call;
         };
