@@ -122,7 +122,7 @@ public class CacheDroidModule extends LruCache<String, Pair<Object, BaseDownFile
      static byte[] objToByte(Object javaObj) throws IOException {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         ObjectOutputStream objStream = new ObjectOutputStream(byteStream);
-        objStream.writeObject(javaObj);
+        objStream.writeObject((Object)javaObj);
         return byteStream.toByteArray();
     }
 }

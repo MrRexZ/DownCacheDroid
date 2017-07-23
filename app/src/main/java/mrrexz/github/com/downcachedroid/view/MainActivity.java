@@ -4,6 +4,7 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,6 +18,7 @@ import java.util.Set;
 import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.controller.DaggerDownCacheApp;
 import mrrexz.github.com.downcachedroid.helper.DataUpdateListener;
+import mrrexz.github.com.downcachedroid.helper.SpacesItemDecoration;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
@@ -45,7 +47,10 @@ public class MainActivity extends AppCompatActivity {
         //DownloadProcDroid.cacheWebContents(testString);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recylerview_photos);
         recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 4));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        recyclerView.addItemDecoration(new SpacesItemDecoration(20));
+//        recyclerView.addItemDecoration(new DividerItemDecoration(this,
+//                DividerItemDecoration.VERTICAL));
 //        recyclerView.setLayoutManager(new LinearLayoutManager(this));
         PhotosRecyclerViewAdapter photosRecyclerViewAdapter = new PhotosRecyclerViewAdapter(new ArrayList<>(), downCacheApp.getDownloadProcInstance());
         recyclerView.setAdapter(photosRecyclerViewAdapter);

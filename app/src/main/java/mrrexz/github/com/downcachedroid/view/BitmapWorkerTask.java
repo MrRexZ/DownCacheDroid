@@ -50,14 +50,12 @@ public class BitmapWorkerTask extends AsyncTask<String, Void, WeakReference<Bitm
     @Override
     protected void onPostExecute(WeakReference<Bitmap> wrbitmap) {
         Log.d("OnPostExecute", "Done");
-//        if (isCancelled()) {
-//            wrbitmap.get() = null;
-//        }
-
-        if (wrbitmap.get() != null) {
-            final ImageView imageView = imageViewReference.get();
-            if (imageView != null) {
-                imageView.setImageBitmap(wrbitmap.get());
+        if (!isCancelled()) {
+            if (wrbitmap.get() != null) {
+                final ImageView imageView = imageViewReference.get();
+                if (imageView != null) {
+                    imageView.setImageBitmap(wrbitmap.get());
+                }
             }
         }
     }
