@@ -249,7 +249,6 @@ public class DownloadProcDroid {
                 Log.d(TAG, "On Failure "  + e.getMessage());
                 activeDownloadCall.remove(url);
                 failedDownloads.add(url);
-                //call.clone().enqueue(cache(url, fileType, successCallback));
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
@@ -266,7 +265,6 @@ public class DownloadProcDroid {
                 }
                 catch (Exception e) {
                     Log.d(TAG, " Response not converted : " + e.getMessage());
-                    //call.clone().enqueue(cache(url, fileType));
                     failedDownloads.add(url);
                 }
                 finally {
@@ -307,6 +305,12 @@ public class DownloadProcDroid {
     public void removeVisitedWebPage(String url){
         if (webPagesVisited.contains(url)){
             webPagesVisited.remove(url);
+        }
+    }
+
+    public void cancelDownload(String url) {
+        if (activeDownloadCall.contains(url)) {
+            activeDownloadCall.get(url).cancel();
         }
     }
 
