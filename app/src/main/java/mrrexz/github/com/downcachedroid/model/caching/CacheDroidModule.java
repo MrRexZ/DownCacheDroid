@@ -107,6 +107,10 @@ public class CacheDroidModule {
         }
     }
 
+    public synchronized Set<String> getAllKeys() {
+        return lruCache.snapshot().keySet();
+    }
+
     public synchronized void resizeCache(int maxSize){
         lruCache.resize(maxSize);
     }

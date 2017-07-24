@@ -44,7 +44,6 @@ public class DownloadProcDroid {
     static OkHttpClient client = createOkHttpClient();
     static OkHttpClient contentDownloadClient = createOkHttpClient();
     public final CacheDroidModule cacheDroidModule;
-    public Function<byte[], Object> convertFromByte;
     private String TAG = "DownloadProcDroid";
     private ConcurrentHashMap<String, Call> activeDownloadCall = new ConcurrentHashMap<>();
     private Set<String> failedDownloads = ConcurrentHashMap.newKeySet();

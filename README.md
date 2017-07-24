@@ -40,15 +40,31 @@ cacheWebContents(String url)
 
 `url` refers to the url pointing to the web crawl content.
 
-**2.Retry failed downloads**
+
+**2. Get all URLs from a webpage**
+
+```
+getWebResLinks(String url, GenericCallback<List<String>> successCallback)
+```
+
+The `sucessCallback` is provided with a list of URL in the `onValue` method
+detected in a given webcrawl content through callback.
+
+**3. Retry failed downloads**
 
 ```
 asyncRedownloadFailedAll(GenericCallback<String> successCallback)
 ```
 
+**4. Cancel download**
+```
+cancelDownload(String url)
+```
+
 ## 1.2 Accessing Cache
 The cache is stored in the format of key (URL) & value (Pair of cached in Java object and object representing types of data)
 All methods mentioned in this section are available from `CacheDroidModule` class.
+
 **1.Obtaining the cache instance**
 
 ```
@@ -63,6 +79,7 @@ insertToCache(String key, Object data, BaseDownFileModule downFileType)
 
 `downFileType` is an existing/user-created subclass of BaseDownFileModule.
 
+
 **3. Get data from cache**
 
 ```
@@ -71,7 +88,14 @@ getConvertedDataFromCache(String key)
 
 Returns object with concrete type as specified in the method `convertDownloadedData` in subclass of `BaseDownFileModule`.
 
-**4. Get type of the wrapper of the cache data**
+**4. Get All key/urls from cache**
+
+```
+getAllKeys()
+```
+
+
+**5. Get type of the wrapper of the cache data**
 ```
 getTypeFromCache(String key)
 ```
@@ -79,20 +103,20 @@ getTypeFromCache(String key)
 Returns the type of wrapper of the data
 
 
-**5.Add support for new wrapper type**
+**6.Add support for new wrapper type**
 ```
 addNewSupportedType(BaseDownFileModule baseDownFileModule)
 ```
 
 Add new supported wrapper to be cachable.
 
-**6.Get all supported type of wrapper of the cache data**
+**7.Get all supported type of wrapper of the cache data**
 ```
 getAllSupportedTypes()
 ```
 
 
-**7. Set Data Update Callback**
+**8. Set Data Update Callback**
 
 ```
 setDataUpdateListener(DataUpdateListener dataUpdateListener)
@@ -136,9 +160,6 @@ you decide to override them.
 Specify how a custom download process for the object representing the class in which the method is residing in
 to be performed
 
-
-## 1.4 Cancel download
-You can cancel existing download in progress by calling `downCacheApp.getDownloadProcInstance().cancelDownload(String url)`.
 
 
 
