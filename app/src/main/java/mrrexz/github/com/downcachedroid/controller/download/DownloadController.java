@@ -197,8 +197,8 @@ public class DownloadController {
 
     public void downloadAndCache(List<String> urls) {
         urls.forEach( url -> {
-            asyncDownload(url);
-            //activeDownloadCall.put(url, downloadCall);
+            Call downloadCall = asyncDownload(url);
+            activeDownloadCall.put(url, downloadCall);
         });
     }
 
