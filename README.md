@@ -30,7 +30,7 @@ New type can be injected later by calling `cacheDroidModule.addNewSupportedType`
 ## 1.1 Downloading & Caching
 Downloading is performed asynchronously and in parallel.
 Caching is created based on LRU (Least-Recently-Used) algorithm, and the access is thread-safe.
-All methods in this section are accessed from instance of `DownloadProcDroid` class.
+All methods in this section are accessed from instance of `DownloadController` class.
 
 **1.Download And Cache**
 
@@ -68,7 +68,7 @@ All methods mentioned in this section are available from `CacheDroidModule` clas
 **1.Obtaining the cache instance**
 
 ```
-downCacheApp.getDownloadProcInstance().cacheDroidModule
+downCacheApp.getDownloadControllerInstance().cacheDroidModule
 ```
 
 **2.Insert to cache**
@@ -159,6 +159,11 @@ you decide to override them.
 ```
 Specify how a custom download process for the object representing the class in which the method is residing in
 to be performed
+
+# 2. TODO:
+1.Write unit test
+
+2.Initialization speed improvement
 
 
 

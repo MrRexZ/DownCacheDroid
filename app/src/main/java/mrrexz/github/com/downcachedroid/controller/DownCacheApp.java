@@ -5,7 +5,7 @@ import java.util.Set;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
+import mrrexz.github.com.downcachedroid.controller.download.DownloadController;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
 
@@ -16,9 +16,9 @@ import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
 @Component(modules = { CacheDroidModule.class })
 @Singleton
 public interface DownCacheApp {
-    DownloadProcDroid getDownloadProcInstance();
+    DownloadController getDownloadControllerInstance();
     void injectCache(Set<BaseDownFileModule> cache);
-//    <T> void injectType(T type);
+
 }
 
 

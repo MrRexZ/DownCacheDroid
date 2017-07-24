@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +18,6 @@ import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.controller.DaggerDownCacheApp;
 import mrrexz.github.com.downcachedroid.controller.DownCacheApp;
 import mrrexz.github.com.downcachedroid.helper.DataUpdateListener;
-import mrrexz.github.com.downcachedroid.helper.GenericCallback;
 import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.ImageDownFileModule;
@@ -37,22 +35,15 @@ public class MainActivity extends AppCompatActivity {
         Set<BaseDownFileModule> setSample = new HashSet<BaseDownFileModule>();
         setSample.add(new ImageDownFileModule());
         DownCacheApp downCacheApp = DaggerDownCacheApp.builder().cacheDroidModule(new CacheDroidModule(setSample)).build();
-
-        /** Default proportion of available heap to use for the cache */
-        final int DEFAULT_CACHE_SIZE_PROPORTION = 18;
-
         final int memClass = ((ActivityManager) this.getApplicationContext().getSystemService(
                 Context.ACTIVITY_SERVICE)).getMemoryClass();
-
         final int cacheSize = 1024 * memClass / 8;
-        downCacheApp.getDownloadProcInstance().cacheDroidModule.resizeCache(cacheSize);
-        Log.d("Memory size : ", Integer.toString(cacheSize));
-        //DownloadProcDroid.cacheWebContents(testString);
+        downCacheApp.getDownloadControllerInstance().cacheDroidModule.resizeCache(cacheSize);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recylerview_photos);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
         recyclerView.addItemDecoration(new SpacesItemDecoration(20));
-        PhotosRecyclerViewAdapter photosRecyclerViewAdapter = new PhotosRecyclerViewAdapter(new ArrayList<>(), downCacheApp.getDownloadProcInstance());
+        PhotosRecyclerViewAdapter photosRecyclerViewAdapter = new PhotosRecyclerViewAdapter(new ArrayList<>(), downCacheApp.getDownloadControllerInstance());
         recyclerView.setAdapter(photosRecyclerViewAdapter);
 
         DataUpdateListener dataUpdateListener = new DataUpdateListener() {
@@ -79,36 +70,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
         };
-        downCacheApp.getDownloadProcInstance().cacheDroidModule.setDataUpdateListener(dataUpdateListener);
-
-        downCacheApp.getDownloadProcInstance().cacheWebContents(testString);
-
-//        try {
-//            downCacheApp.getDownloadProcInstance().getWebResLinks(testString, (urls) -> {
-//                downCacheApp.getDownloadProcInstance().downloadAndCache(urls, new GenericCallback<String>() {
-//                    @Override
-//                    public void onValue(String value) throws IOException {
-//                        //Do nothing..
-//                    }
-//                });
-//                Log.d(TAG, "Started downloading bitmap!!");
-//
-//            });
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
+        downCacheApp.getDownloadControllerInstance().cacheDroidModule.setDataUpdateListener(dataUpdateListener);
+        downCacheApp.getDownloadControllerInstance().cacheWebContents(testString);
         Button failedDownloadButton = (Button) findViewById(R.id.redownloadFailedButton);
         failedDownloadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                downCacheApp.getDownloadProcInstance().asyncRedownloadFailedAll(new GenericCallback<String>() {
-                    @Override
-                    public void onValue(String value) throws IOException {
-                        Log.d(TAG, "Redownload successfull : " + value);
-                        dataUpdateListener.cacheElemAdded(value);
-                    }
-                });
+                downCacheApp.getDownloadControllerInstance().asyncRedownloadFailedAll();
             }
         });
     }

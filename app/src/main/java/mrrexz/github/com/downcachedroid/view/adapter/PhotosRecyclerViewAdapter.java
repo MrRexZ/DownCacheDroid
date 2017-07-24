@@ -10,7 +10,7 @@ import android.widget.ImageView;
 import java.util.List;
 
 import mrrexz.github.com.downcachedroid.R;
-import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
+import mrrexz.github.com.downcachedroid.controller.download.DownloadController;
 
 /**
  * Created by antho on 7/20/2017.
@@ -18,11 +18,11 @@ import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
 
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
     private List<String> itemsData;
-    private DownloadProcDroid downloadProcDroid;
+    private DownloadController downloadController;
 
-    public PhotosRecyclerViewAdapter(List<String> itemsData, DownloadProcDroid downloadProcDroid) {
+    public PhotosRecyclerViewAdapter(List<String> itemsData, DownloadController downloadController) {
         this.itemsData = itemsData;
-        this.downloadProcDroid = downloadProcDroid;
+        this.downloadController = downloadController;
     }
 
     public synchronized void add(int position, String item) {
@@ -49,7 +49,7 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         String key_url = itemsData.get(position);
-        Bitmap bitmap = (Bitmap) downloadProcDroid.cacheDroidModule.getConvertedDataFromCache(key_url);
+        Bitmap bitmap = (Bitmap) downloadController.cacheDroidModule.getConvertedDataFromCache(key_url);
         if ( bitmap != null ) {
             viewHolder.imgViewIcon.setImageBitmap(bitmap);
         }
