@@ -65,16 +65,24 @@ public class DownloadProcDroid {
     }
 
 
+    public Call cacheWebContents(String url) {
+        try {
+            Call cacheWebContentsCall = getWebResLinks(url, (urls) -> {
+                downloadAndCache(urls, new GenericCallback<String>() {
+                    @Override
+                    public void onValue(String value) throws IOException {
+                        //Do nothing..
+                    }
+                });
+                Log.d(TAG, "Started downloading bitmap!!");
 
-//    public Call cacheWebContents(String url) {
-//        try {
-//            Call cacheWebContentsCall = getWebResLinks(url, this::downloadAndCache);
-//            return cacheWebContentsCall;
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
+            });
+            return cacheWebContentsCall;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public Call getWebResLinks(String url, GenericCallback<List<String>> successCallback) throws IOException {
         Request request = new Request.Builder()
@@ -108,7 +116,8 @@ public class DownloadProcDroid {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
-
+                Log.e(TAG, "Failre download : " + e.getMessage());
+                failedDownloads.add(url);
             }
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
@@ -205,7 +214,7 @@ public class DownloadProcDroid {
 
     private ConcurrentHashMap<String, BaseDownFileModule> getAllSupportedTypes() {
         ConcurrentHashMap<String, BaseDownFileModule> mimeDownObjMap = new ConcurrentHashMap<>();
-        cacheDroidModule.supportedDownTypes.stream().forEach(supportedType -> {
+        cacheDroidModule.getAllSupportedTypes().stream().forEach(supportedType -> {
             mimeDownObjMap.put(supportedType.MIME, supportedType);
         });
         return mimeDownObjMap;
@@ -222,7 +231,7 @@ public class DownloadProcDroid {
             public void onValue(MediaType mediaType) throws IOException {
                 BaseDownFileModule downObjType = getAllSupportedTypes().get(mediaType.type());
                 if (downObjType != null) {
-                    Object cachedVal = cacheDroidModule.getDataFromCache(url);
+                    Object cachedVal = cacheDroidModule.getConvertedDataFromCache(url);
                     if (cachedVal == null) {
                         downObjType.download(defaultDownload(url, successDownloadAction));
                     }
@@ -246,7 +255,7 @@ public class DownloadProcDroid {
         return new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
-                Log.d(TAG, "On Failure "  + e.getMessage());
+                Log.e(TAG, "Download Failure " + e.getMessage());
                 activeDownloadCall.remove(url);
                 failedDownloads.add(url);
             }
@@ -264,7 +273,7 @@ public class DownloadProcDroid {
                     successCallback.onValue(url);
                 }
                 catch (Exception e) {
-                    Log.d(TAG, " Response not converted : " + e.getMessage());
+                    Log.e(TAG, " Response not converted : " + e.getMessage());
                     failedDownloads.add(url);
                 }
                 finally {
@@ -278,9 +287,13 @@ public class DownloadProcDroid {
     public ConcurrentHashMap<String, Call> asyncRedownloadFailedAll(GenericCallback<String> successCallback) {
         List<String> failedDownloadUrls = new ArrayList<>(failedDownloads);
         ConcurrentHashMap<String, Call> redownloadCall = new ConcurrentHashMap<>();
-        failedDownloadUrls.forEach(failedDownloadUrl -> redownloadCall.put(failedDownloadUrl, asyncDownload(failedDownloadUrl, successCallback)));
+        failedDownloadUrls.forEach(failedDownloadUrl -> {
+            redownloadCall.put(failedDownloadUrl, asyncDownload(failedDownloadUrl, successCallback));
+            Log.d(TAG, "Redownloading : " + failedDownloadUrl);
+        });
         return redownloadCall;
     }
+
 
     public ConcurrentHashMap<String, Call> asyncRedownloadAll(GenericCallback<List<String>> successCallback){
         List<String> visitedWebPages = getAllVisitedWebPages();
@@ -313,7 +326,6 @@ public class DownloadProcDroid {
             activeDownloadCall.get(url).cancel();
         }
     }
-
 
     public List<String> getAllVisitedWebPages(){
         return new ArrayList<String>(webPagesVisited);

@@ -1,21 +1,20 @@
 package mrrexz.github.com.downcachedroid.view.adapter;
 
 import android.graphics.Bitmap;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.support.v7.widget.RecyclerView;
+
+import java.util.List;
+
 import mrrexz.github.com.downcachedroid.R;
 import mrrexz.github.com.downcachedroid.controller.download.DownloadProcDroid;
-import mrrexz.github.com.downcachedroid.view.helper.BitmapWorkerTask;
 
 /**
  * Created by antho on 7/20/2017.
  */
-
-
-import java.util.List;
 
 public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecyclerViewAdapter.ViewHolder> {
     private List<String> itemsData;
@@ -50,18 +49,17 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
         String key_url = itemsData.get(position);
-        Bitmap bitmap = (Bitmap)downloadProcDroid.cacheDroidModule.getDataFromCache(key_url);
+        Bitmap bitmap = (Bitmap) downloadProcDroid.cacheDroidModule.getConvertedDataFromCache(key_url);
         if ( bitmap != null ) {
             viewHolder.imgViewIcon.setImageBitmap(bitmap);
         }
-        else {
-            if (downloadProcDroid.downloadInProgress(key_url)) {
-                BitmapWorkerTask bitmapWorkerTask = new BitmapWorkerTask(viewHolder.imgViewIcon, downloadProcDroid);
-                bitmapWorkerTask.execute(key_url);
-            }
-        }
 
 
+    }
+
+    @Override
+    public int getItemCount() {
+        return itemsData.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -70,10 +68,5 @@ public class PhotosRecyclerViewAdapter extends RecyclerView.Adapter<PhotosRecycl
             super(itemLayoutView);
             imgViewIcon = (ImageView) itemLayoutView.findViewById(R.id.downed_img);
         }
-    }
-
-    @Override
-    public int getItemCount() {
-        return itemsData.size();
     }
 }

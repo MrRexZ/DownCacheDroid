@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         Set<BaseDownFileModule> setSample = new HashSet<BaseDownFileModule>();
         setSample.add(new ImageDownFileModule());
         DownCacheApp downCacheApp = DaggerDownCacheApp.builder().cacheDroidModule(new CacheDroidModule(setSample)).build();
-        downCacheApp.injectCache(setSample);
+
         /** Default proportion of available heap to use for the cache */
         final int DEFAULT_CACHE_SIZE_PROPORTION = 18;
 
@@ -81,21 +81,22 @@ public class MainActivity extends AppCompatActivity {
         };
         downCacheApp.getDownloadProcInstance().cacheDroidModule.setDataUpdateListener(dataUpdateListener);
 
-        Log.d("BITMAP Main", "Preparing...");
-        try {
-            downCacheApp.getDownloadProcInstance().getWebResLinks(testString, (urls) -> {
-                downCacheApp.getDownloadProcInstance().downloadAndCache(urls, new GenericCallback<String>() {
-                    @Override
-                    public void onValue(String value) throws IOException {
-                        //Do nothing..
-                    }
-                });
-                Log.d(TAG, "Started downloading bitmap!!");
+        downCacheApp.getDownloadProcInstance().cacheWebContents(testString);
 
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            downCacheApp.getDownloadProcInstance().getWebResLinks(testString, (urls) -> {
+//                downCacheApp.getDownloadProcInstance().downloadAndCache(urls, new GenericCallback<String>() {
+//                    @Override
+//                    public void onValue(String value) throws IOException {
+//                        //Do nothing..
+//                    }
+//                });
+//                Log.d(TAG, "Started downloading bitmap!!");
+//
+//            });
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         Button failedDownloadButton = (Button) findViewById(R.id.redownloadFailedButton);
         failedDownloadButton.setOnClickListener(new View.OnClickListener() {
