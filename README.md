@@ -1,6 +1,12 @@
 # DownCacheDroid
 A library to effectively cache & download web files.
+
 This library utilizes [okhttp3](https://github.com/square/okhttp) and [Dagger 2](https://github.com/google/dagger) as DI framework
+
+**WARNING :
+The library is currently is a bit slow during initialization, but should be smoother thereafter.
+This seems to be caused by the inclusion of callback in detecting MIME type asynchronously.
+I will fix this in the future.**
 
 # 1. Features & Usage
 Firstly, build the project so Dagger 2 can generate the Dagger-prefixed class.
@@ -17,10 +23,9 @@ DownCacheApp downCacheApp = DaggerDownCacheApp
 `DownCacheApp` is the main interface of the library for interaction between user.
 A single instance of this interface represents a single cache.
 The variable `typeSet` refers to the type you'd like to support.
-New type can be injected by calling :
- `cacheDroidModule.addNewSupportedType` method.
-You can get a list of supported types by calling :
-`cacheDroidModule.getAllSupportedTypes()`
+The `cacheDroidModule(new CacheDroidModule(typeSet))` specify the supported set of wrapper data
+for the cache.
+New type can be injected later by calling `cacheDroidModule.addNewSupportedType` method.
 
 ## 1.1 Downloading & Caching
 Downloading is performed asynchronously and in parallel.
@@ -29,33 +34,76 @@ All methods in this section are accessed from instance of `DownloadProcDroid` cl
 
 **1.Download And Cache**
 
-`cacheWebContents(String url)`
+```
+cacheWebContents(String url)
+```
+
 `url` refers to the url pointing to the web crawl content.
 
 **2.Retry failed downloads**
 
-`asyncRedownloadFailedAll(GenericCallback<String> successCallback)`
+```
+asyncRedownloadFailedAll(GenericCallback<String> successCallback)
+```
 
 ## 1.2 Accessing Cache
 The cache is stored in the format of key (URL) & value (Pair of cached in Java object and object representing types of data)
 All methods mentioned in this section are available from `CacheDroidModule` class.
 **1.Obtaining the cache instance**
 
-`downCacheApp.getDownloadProcInstance().cacheDroidModule`
+```
+downCacheApp.getDownloadProcInstance().cacheDroidModule
+```
 
 **2.Insert to cache**
 
-`insertToCache(String key, Object data, BaseDownFileModule downFileType)`
+```
+insertToCache(String key, Object data, BaseDownFileModule downFileType)
+```
+
 `downFileType` is an existing/user-created subclass of BaseDownFileModule.
 
 **3. Get data from cache**
-``getConvertedDataFromCache(String key)``
+
+```
+getConvertedDataFromCache(String key)
+```
+
 Returns object with concrete type as specified in the method `convertDownloadedData` in subclass of `BaseDownFileModule`.
 
-**Set Data Update Callback**
+**4. Get type of the wrapper of the cache data**
+```
+getTypeFromCache(String key)
+```
 
-`setDataUpdateListener(DataUpdateListener dataUpdateListener)`
-`dataUpdateListener` is composed 2 types of events, when data is added and when data is removed.
+Returns the type of wrapper of the data
+
+
+**5.Add support for new wrapper type**
+```
+addNewSupportedType(BaseDownFileModule baseDownFileModule)
+```
+
+Add new supported wrapper to be cachable.
+
+**6.Get all supported type of wrapper of the cache data**
+```
+getAllSupportedTypes()
+```
+
+
+**7. Set Data Update Callback**
+
+```
+setDataUpdateListener(DataUpdateListener dataUpdateListener)
+```
+The method is used to keep track of cache element update and removal.
+`dataUpdateListener` is composed 2 types of events :
+```
+    void cacheElemAdded(String url);
+    void cacheElemRemoved(String url);
+```
+Override both of them in your view-related classes with function you want to execute on the events.
 
 
 ## 1.3 Creating Custom Downloadable Types
