@@ -5,6 +5,7 @@ import android.support.v4.util.Pair;
 import android.util.Log;
 
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -43,10 +44,12 @@ public class CacheDroidModule {
         }
     };
     private Set<BaseDownFileModule> supportedDownTypes;
+    private ConcurrentHashMap<String, BaseDownFileModule> mimeDownObjMap = new ConcurrentHashMap<>();
 
     @Inject
     public CacheDroidModule(Set<BaseDownFileModule> supportedDownTypes) {
         this.supportedDownTypes = supportedDownTypes;
+        supportedDownTypes.forEach(supportedDownType -> mimeDownObjMap.put(supportedDownType.MIME, supportedDownType));
     }
 
     public static int getDefaultLruCacheSize() {
@@ -64,12 +67,18 @@ public class CacheDroidModule {
     public void addNewSupportedType(BaseDownFileModule baseDownFileModule) {
         synchronized (supportedDownTypes) {
             supportedDownTypes.add(baseDownFileModule);
+            mimeDownObjMap.put(baseDownFileModule.MIME, baseDownFileModule);
         }
     }
 
     public synchronized Set<BaseDownFileModule> getAllSupportedTypes() {
         return supportedDownTypes;
     }
+
+    public BaseDownFileModule getSupportedTypeWrapper(String mimeString) {
+        return mimeDownObjMap.get(mimeString);
+    }
+
 
     public void setDataUpdateListener(DataUpdateListener dataUpdateListener) {
         this.dataUpdateListener = dataUpdateListener;

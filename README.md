@@ -3,11 +3,6 @@ A library to effectively cache & download web files.
 
 This library utilizes [okhttp3](https://github.com/square/okhttp) and [Dagger 2](https://github.com/google/dagger) as DI framework
 
-**WARNING :
-The library is currently is a bit slow during initialization, but should be smoother thereafter.
-This seems to be caused by the inclusion of callback in detecting MIME type asynchronously.
-I will fix this in the future.**
-
 # 1. Features & Usage
 Firstly, build the project so Dagger 2 can generate the Dagger-prefixed class.
 Then, to use the library, at least a module of type `DownCacheApp` is needed to be created :
@@ -133,7 +128,7 @@ Override both of them in your view-related classes with function you want to exe
 ## 1.3 Creating Custom Downloadable Types
 Users of library can create their own class to support new downloadable types, by extending their class from `BaseDownFile` class.
 Users will be required to specify the MIME, which represents what type of Content-Type the class should represent as.
-and also to override 3 methods, all of which are located in `BaseDownFileModule` class as abstract methods.
+and also to override 2 methods, all of which are located in `BaseDownFileModule` class as abstract methods.
 
 
 **1.Convert Downloaded Data**
@@ -146,23 +141,14 @@ you decide to override them.
 
 **2.Get Data:**
 ```
-    @Override
     public Object getConvertedData(Object data) {
 ```
 The method returns object with the same instantiated type as specified by `convertDownloadedData` method above.
 Please note that `convertDownloadedData` and `getConvertedData` method has to return the same instantiated type of object if
 you decide to override them.
 
-**3.Get Object Type Of Web Data :**
-```
-    public void download(Function<BaseDownFileModule, Call> standardDownload) throws IOException
-```
-Specify how a custom download process for the object representing the class in which the method is residing in
-to be performed
-
 # 2. TODO:
 1.Write unit test
-
 2.Initialization speed improvement
 
 

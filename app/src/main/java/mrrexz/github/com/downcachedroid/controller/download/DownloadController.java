@@ -14,9 +14,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 
 import javax.inject.Inject;
@@ -27,8 +24,6 @@ import mrrexz.github.com.downcachedroid.model.caching.CacheDroidModule;
 import mrrexz.github.com.downcachedroid.model.downfiles.BaseDownFileModule;
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.ConnectionPool;
-import okhttp3.Dispatcher;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -41,8 +36,7 @@ import okhttp3.Response;
 @Singleton
 public class DownloadController {
 
-    static OkHttpClient client = createOkHttpClient();
-    static OkHttpClient contentDownloadClient = createOkHttpClient();
+    static OkHttpClient client = new OkHttpClient();
     public final CacheDroidModule cacheDroidModule;
     private String TAG = "DownloadController";
     private ConcurrentHashMap<String, Call> activeDownloadCall = new ConcurrentHashMap<>();
@@ -54,22 +48,10 @@ public class DownloadController {
         this.cacheDroidModule = cacheDroidModule;
     }
 
-    private static OkHttpClient createOkHttpClient() {
-        Dispatcher dispatcher = new Dispatcher();
-        dispatcher.setMaxRequests(70);
-        dispatcher.setMaxRequestsPerHost(20);
-        return new OkHttpClient.Builder()
-                .connectionPool(new ConnectionPool(8 ,15000, TimeUnit.MILLISECONDS))
-                .build();
-    }
-
-
     public Call cacheWebContents(String url) {
         try {
             Call cacheWebContentsCall = getWebResLinks(url, (urls) -> {
                 downloadAndCache(urls);
-                Log.d(TAG, "Started downloading bitmap!!");
-
             });
             return cacheWebContentsCall;
         } catch (IOException e) {
@@ -83,13 +65,15 @@ public class DownloadController {
                 .url(url)
                 .build();
 
+
         Call call = client.newCall(request);
 
         call.enqueue(new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
-                Log.d(TAG, "Web pages content fetch failure!" );
+                Log.d(TAG, "Web pages content fetch failure!");
             }
+
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 String pageRes = response.body().string();
@@ -107,23 +91,28 @@ public class DownloadController {
                 .build();
 
         Call call = client.newCall(request);
+
+        Log.w(TAG, "Request BEFORE " + client.dispatcher().queuedCallsCount());
         call.enqueue(new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
-                Log.e(TAG, "Failre download : " + e.getMessage());
+                Log.e(TAG, "Failure download : " + e.getMessage());
                 failedDownloads.add(url);
             }
+
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 MediaType contentType = MediaType.parse(response.header("Content-Type"));
+                byte[] result = response.body().bytes();
                 successCallback.onValue(contentType);
             }
         });
         return call;
     }
 
-    public void asyncGetUrlsWithMimeType(String targetMime, String[] urls, GenericCallback<String> successCallback){
-        for (int i = 0 ; i< urls.length ; i++) {
+
+    public void asyncGetUrlsWithMimeType(String targetMime, String[] urls, GenericCallback<String> successCallback) {
+        for (int i = 0; i < urls.length; i++) {
             asyncGetUrlWithMimeType(targetMime, urls[i], successCallback);
         }
     }
@@ -132,7 +121,7 @@ public class DownloadController {
         asyncGetUrlMimeType(url, new GenericCallback<MediaType>() {
             @Override
             public void onValue(MediaType value) throws IOException {
-                if (value.type().equals(targetMime)){
+                if (value.type().equals(targetMime)) {
                     successCallback.onValue(url);
                 }
             }
@@ -140,22 +129,20 @@ public class DownloadController {
     }
 
     public MediaType syncIdentifyMime(String url) throws ExecutionException, InterruptedException {
-        Callable<MediaType> callable = new Callable<MediaType>() {
-            @Override
-            public MediaType call() throws Exception {
-                    Request request = new Request.Builder()
-                            .url(url)
-                            .build();
-                    Response response = client.newCall(request).execute();
-                    MediaType contentType = MediaType.parse(response.header("Content-Type"));
-                    return contentType;
-                }
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        Response response = null;
+        try {
+            response = client.newCall(request).execute();
+            MediaType contentType = MediaType.parse(response.header("Content-Type"));
+            return contentType;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        };
-
-        FutureTask<MediaType> futureTask = new FutureTask<MediaType>(callable);
-        Thread thread = new Thread(futureTask);
-        return futureTask.get();
+        Log.e(TAG, "MimeType cannot be identified in the HTTP header!");
+        return null;
     }
 
     public List<String> retrieveUrlsWithMimeType(String targetMIME, String[] urls) throws ExecutionException, InterruptedException {
@@ -165,7 +152,7 @@ public class DownloadController {
             @Override
             public List<String> call() throws Exception {
                 List<String> filteredURL = new ArrayList<>();
-                for (int i = 0 ; i< urls.length ; i++) {
+                for (int i = 0; i < urls.length; i++) {
                     Request request = new Request.Builder()
                             .url(urls[i])
                             .build();
@@ -179,12 +166,12 @@ public class DownloadController {
                 return filteredURL;
             }
         };
-        Future<List<String>> future =  executor.submit(callable);
+        Future<List<String>> future = executor.submit(callable);
         return future.get();
     }
 
     private List<String> extractLinks(String text) {
-       Set<String> urlLinks = new HashSet<String>();
+        Set<String> urlLinks = new HashSet<String>();
         Matcher urlMatcher = Patterns.WEB_URL.matcher(text);
         while (urlMatcher.find()) {
             String url = urlMatcher.group();
@@ -196,56 +183,32 @@ public class DownloadController {
     }
 
     public void downloadAndCache(List<String> urls) {
-        urls.forEach( url -> {
+        for (String url : urls) {
+            Log.d(TAG, "starting to download...");
             Call downloadCall = asyncDownload(url);
-            activeDownloadCall.put(url, downloadCall);
-        });
+            if (downloadCall != null) {
+                activeDownloadCall.put(url, downloadCall);
+            }
+
+        }
     }
 
     public boolean downloadInProgress(String url) {
         return activeDownloadCall.get(url) != null;
     }
 
-    private ConcurrentHashMap<String, BaseDownFileModule> getAllSupportedTypes() {
-        ConcurrentHashMap<String, BaseDownFileModule> mimeDownObjMap = new ConcurrentHashMap<>();
-        cacheDroidModule.getAllSupportedTypes().stream().forEach(supportedType -> {
-            mimeDownObjMap.put(supportedType.MIME, supportedType);
-        });
-        return mimeDownObjMap;
-    }
-
-
     public Call asyncDownload(String url) {
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
 
-        if (failedDownloads.contains(url)) {
-            failedDownloads.remove(url);
-        }
-        return asyncGetUrlMimeType(url, new GenericCallback<MediaType>() {
-            @Override
-            public void onValue(MediaType mediaType) throws IOException {
-                BaseDownFileModule downObjType = getAllSupportedTypes().get(mediaType.type());
-                if (downObjType != null) {
-                    Object cachedVal = cacheDroidModule.getConvertedDataFromCache(url);
-                    if (cachedVal == null) {
-                        downObjType.download(defaultDownload(url));
-                    }
-                }
-            }
-        });
+        Call call = client.newCall(request);
+        call.enqueue(standardCache(url));
+        return call;
+
     }
 
-    private Function<BaseDownFileModule, Call> defaultDownload(String url) {
-        return (BaseDownFileModule fileType) -> {
-            Request request = new Request.Builder()
-                    .url(url)
-                    .build();
-            Call call = contentDownloadClient.newCall(request);
-            call.enqueue(cache(url, fileType));
-            return call;
-        };
-    }
-
-    private Callback cache(String url, BaseDownFileModule fileType) {
+    private Callback standardCache(String url) {
         return new Callback() {
             @Override
             public void onFailure(final Call call, IOException e) {
@@ -253,23 +216,29 @@ public class DownloadController {
                 activeDownloadCall.remove(url);
                 failedDownloads.add(url);
             }
+
             @Override
             public void onResponse(Call call, final Response response) throws IOException {
                 try {
+                    Log.d(TAG, "QUEUE SIZE : " + client.dispatcher().queuedCallsCount());
+                    BaseDownFileModule downObjType = cacheDroidModule.getSupportedTypeWrapper(response.body().contentType().type());
                     byte[] bytesData = response.body().bytes();
-                    Object convertedType = fileType.convertDownloadedData(bytesData);
-                    Log.d(TAG, url);
-                    cacheDroidModule.insertToCache(url, convertedType, fileType);
-                    if (failedDownloads.contains(url)){
-                        Log.d(TAG, "Previous failed download is downloaded successfully");
-                        failedDownloads.remove(url);
+                    if (downObjType != null) {
+                        Object cachedVal = cacheDroidModule.getConvertedDataFromCache(url);
+                        if (cachedVal == null) {
+                            Object convertedType = downObjType.convertDownloadedData(bytesData);
+                            Log.d(TAG, "Download successful : " + url);
+                            cacheDroidModule.insertToCache(url, convertedType, downObjType);
+                            if (failedDownloads.contains(url)) {
+                                Log.d(TAG, "Previous failed download is downloaded successfully");
+                                failedDownloads.remove(url);
+                            }
+                        }
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Log.e(TAG, " Response not converted : " + e.getMessage());
                     failedDownloads.add(url);
-                }
-                finally {
+                } finally {
                     activeDownloadCall.remove(url);
                 }
 
@@ -288,7 +257,7 @@ public class DownloadController {
     }
 
 
-    public ConcurrentHashMap<String, Call> asyncRedownloadAll(GenericCallback<List<String>> successCallback){
+    public ConcurrentHashMap<String, Call> asyncRedownloadAll(GenericCallback<List<String>> successCallback) {
         List<String> visitedWebPages = getAllVisitedWebPages();
         ConcurrentHashMap<String, Call> redownloadAllCall = new ConcurrentHashMap<>();
         visitedWebPages.forEach(visitedWebPage -> {
@@ -302,14 +271,14 @@ public class DownloadController {
     }
 
 
-    public void addVisitedWebPage(String url){
-        if (!webPagesVisited.contains(url)){
+    public void addVisitedWebPage(String url) {
+        if (!webPagesVisited.contains(url)) {
             webPagesVisited.add(url);
         }
     }
 
-    public void removeVisitedWebPage(String url){
-        if (webPagesVisited.contains(url)){
+    public void removeVisitedWebPage(String url) {
+        if (webPagesVisited.contains(url)) {
             webPagesVisited.remove(url);
         }
     }
@@ -320,7 +289,7 @@ public class DownloadController {
         }
     }
 
-    public List<String> getAllVisitedWebPages(){
+    public List<String> getAllVisitedWebPages() {
         return new ArrayList<String>(webPagesVisited);
     }
 
